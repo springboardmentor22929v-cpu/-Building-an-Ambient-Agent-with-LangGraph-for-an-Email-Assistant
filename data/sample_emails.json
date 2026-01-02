@@ -1,0 +1,23 @@
+[
+  {
+    "id": "email_001",
+    "from": "newsletter@techcrunch.com",
+    "subject": "This Week in Tech",
+    "body": "Check out our top stories...",
+    "expected_triage": "ignore"
+  },
+  {
+    "id": "email_002",
+    "from": "boss@company.com",
+    "subject": "URGENT: Server Down",
+    "body": "Production is offline. Need immediate attention!",
+    "expected_triage": "notify_human"
+  },
+  {
+    "id": "email_003",
+    "from": "colleague@company.com",
+    "subject": "Can we meet next week?",
+    "body": "I'd like to sync on the Q4 project. Are you free Tuesday or Wednesday?",
+    "expected_triage": "respond"
+  }
+]

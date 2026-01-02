@@ -1,0 +1,22 @@
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# LangChain Stack
+langchain==0.1.20
+langgraph==0.0.39
+langsmith>=0.1.17,<0.2.0
+langchain-google-genai==0.0.11
+
+# Google APIs
+google-generativeai>=0.4.1,<0.5.0
+google-api-python-client==2.116.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+
+# Database
+aiosqlite==0.19.0
+
+# Utilities
+python-dotenv==1.0.1
+pydantic==2.6.1
