@@ -8,3 +8,6 @@ venv/
 
 # OS
 .DS_Store
+
+test_agent.py
+test.py

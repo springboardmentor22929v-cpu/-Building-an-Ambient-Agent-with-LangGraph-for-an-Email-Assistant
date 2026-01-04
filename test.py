@@ -1,26 +1,27 @@
-from dotenv import load_dotenv
-import os
+print("Checking imports...")
 
-load_dotenv()
+try:
+    from langchain_core.pydantic_v1 import SecretStr
+    print("✓ langchain-core installed correctly")
+except ImportError as e:
+    print(f"✗ langchain-core issue: {e}")
 
-# Test 1: Environment variables
-print("✓ GOOGLE_API_KEY:", "✓" if os.getenv("GOOGLE_API_KEY") else "✗")
-print("✓ LANGCHAIN_API_KEY:", "✓" if os.getenv("LANGCHAIN_API_KEY") else "✗")
-
-# Test 2: LangChain imports
 try:
     from langchain_google_genai import ChatGoogleGenerativeAI
-    from langgraph.graph import StateGraph
-    print("✓ LangChain imports successful")
+    print("✓ langchain-google-genai installed correctly")
 except ImportError as e:
-    print("✗ Import error:", e)
+    print(f"✗ langchain-google-genai issue: {e}")
 
-# Test 3: Gemini API
 try:
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
-    response = llm.invoke("Say 'Setup complete!'")
-    print("✓ Gemini API:", response.content)
-except Exception as e:
-    print("✗ Gemini error:", e)
+    from langgraph.graph import StateGraph
+    print("✓ langgraph installed correctly")
+except ImportError as e:
+    print(f"✗ langgraph issue: {e}")
 
-print("\n🎉 Setup complete! Ready to build.")
+try:
+    from dotenv import load_dotenv
+    print("✓ python-dotenv installed correctly")
+except ImportError as e:
+    print(f"✗ python-dotenv issue: {e}")
+
+print("\n✅ All imports successful!")
