@@ -1,0 +1,249 @@
+{
+  "summary": {
+    "total": 30,
+    "correct": 24,
+    "accuracy": 80.0
+  },
+  "results": [
+    {
+      "id": "1",
+      "subject": "Invoice for December",
+      "human_label": "notify_human",
+      "classification": "notify_human",
+      "match": true,
+      "triage_reason": "Detected scheduling / billing / legal keywords"
+    },
+    {
+      "id": "2",
+      "subject": "Quick question: API usage",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "3",
+      "subject": "FREE MONEY!!! Click here",
+      "human_label": "ignore",
+      "classification": "ignore",
+      "match": true,
+      "triage_reason": "Contains spam/unsubscribe/marketing keywords"
+    },
+    {
+      "id": "4",
+      "subject": "Meeting invite: Project kickoff",
+      "human_label": "notify_human",
+      "classification": "notify_human",
+      "match": true,
+      "triage_reason": "Detected scheduling / billing / legal keywords"
+    },
+    {
+      "id": "5",
+      "subject": "Re: minor bug",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "6",
+      "subject": "Unsubscribe from newsletter",
+      "human_label": "ignore",
+      "classification": "ignore",
+      "match": true,
+      "triage_reason": "Contains spam/unsubscribe/marketing keywords"
+    },
+    {
+      "id": "7",
+      "subject": "Legal: contract changes",
+      "human_label": "notify_human",
+      "classification": "notify_human",
+      "match": true,
+      "triage_reason": "Detected scheduling / billing / legal keywords"
+    },
+    {
+      "id": "8",
+      "subject": "FYI: weekly stats",
+      "human_label": "notify_human",
+      "classification": "notify_human",
+      "match": true,
+      "triage_reason": "No strong heuristic match; escalate to human"
+    },
+    {
+      "id": "9",
+      "subject": "How do I reset my password?",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "10",
+      "subject": "Limited time offer",
+      "human_label": "ignore",
+      "classification": "ignore",
+      "match": true,
+      "triage_reason": "Contains spam/unsubscribe/marketing keywords"
+    },
+    {
+      "id": "11",
+      "subject": "Do you have bandwidth for a quick call?",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "12",
+      "subject": "Contract amendment",
+      "human_label": "notify_human",
+      "classification": "notify_human",
+      "match": true,
+      "triage_reason": "Detected scheduling / billing / legal keywords"
+    },
+    {
+      "id": "13",
+      "subject": "Password changed",
+      "human_label": "notify_human",
+      "classification": "notify_human",
+      "match": true,
+      "triage_reason": "No strong heuristic match; escalate to human"
+    },
+    {
+      "id": "14",
+      "subject": "Quick: where are the logs?",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "15",
+      "subject": "Save 30% today only",
+      "human_label": "ignore",
+      "classification": "ignore",
+      "match": true,
+      "triage_reason": "Contains spam/unsubscribe/marketing keywords"
+    },
+    {
+      "id": "16",
+      "subject": "Re-schedule meeting",
+      "human_label": "notify_human",
+      "classification": "notify_human",
+      "match": true,
+      "triage_reason": "Detected scheduling / billing / legal keywords"
+    },
+    {
+      "id": "17",
+      "subject": "Question about billing charges",
+      "human_label": "respond",
+      "classification": "notify_human",
+      "match": false,
+      "triage_reason": "Detected scheduling / billing / legal keywords"
+    },
+    {
+      "id": "18",
+      "subject": "You won a prize",
+      "human_label": "ignore",
+      "classification": "ignore",
+      "match": true,
+      "triage_reason": "Contains spam/unsubscribe/marketing keywords"
+    },
+    {
+      "id": "19",
+      "subject": "Please review PR #42",
+      "human_label": "notify_human",
+      "classification": "respond",
+      "match": false,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "20",
+      "subject": "How to set up the SDK?",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "21",
+      "subject": "FW: client complaint",
+      "human_label": "notify_human",
+      "classification": "respond",
+      "match": false,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "22",
+      "subject": "Thanks!",
+      "human_label": "notify_human",
+      "classification": "respond",
+      "match": false,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "23",
+      "subject": "Work from home pills",
+      "human_label": "ignore",
+      "classification": "ignore",
+      "match": true,
+      "triage_reason": "Contains spam/unsubscribe/marketing keywords"
+    },
+    {
+      "id": "24",
+      "subject": "Can you approve the budget?",
+      "human_label": "notify_human",
+      "classification": "respond",
+      "match": false,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "25",
+      "subject": "Small doc fix",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "26",
+      "subject": "Meeting minutes",
+      "human_label": "notify_human",
+      "classification": "notify_human",
+      "match": true,
+      "triage_reason": "Detected scheduling / billing / legal keywords"
+    },
+    {
+      "id": "27",
+      "subject": "Unable to login",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "28",
+      "subject": "Weekly digest",
+      "human_label": "ignore",
+      "classification": "ignore",
+      "match": true,
+      "triage_reason": "Contains spam/unsubscribe/marketing keywords"
+    },
+    {
+      "id": "29",
+      "subject": "Security incident report",
+      "human_label": "notify_human",
+      "classification": "respond",
+      "match": false,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    },
+    {
+      "id": "30",
+      "subject": "Follow up: onboarding",
+      "human_label": "respond",
+      "classification": "respond",
+      "match": true,
+      "triage_reason": "Detected request-like phrasing or question mark"
+    }
+  ]
+}
