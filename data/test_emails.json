@@ -235,7 +235,7 @@
   },
   {
     "subject": "Urgent: Payment failed for subscription",
-    "body": "The client’s subscription payment did not go through.",
+    "body": "The client's subscription payment did not go through.",
     "sender": "billing@company.com",
     "label": "notify_human"
   },
@@ -253,7 +253,7 @@
   },
   {
     "subject": "Proposal feedback needed",
-    "body": "We’d appreciate your feedback on the attached proposal.",
+    "body": "We'd appreciate your feedback on the attached proposal.",
     "sender": "partner@company.com",
     "label": "respond"
   },
@@ -265,7 +265,7 @@
   },
   {
     "subject": "Follow up on meeting agenda",
-    "body": "Just following up to confirm the agenda for tomorrow’s meeting.",
+    "body": "Just following up to confirm the agenda for tomorrow's meeting.",
     "sender": "teamlead@company.com",
     "label": "respond"
   },
@@ -289,7 +289,7 @@
   },
   {
     "subject": "Confirm attendance for workshop",
-    "body": "Please confirm if you’ll attend the upcoming workshop.",
+    "body": "Please confirm if you'll attend the upcoming workshop.",
     "sender": "training@company.com",
     "label": "respond"
   },
