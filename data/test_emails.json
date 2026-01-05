@@ -1,0 +1,302 @@
+[
+  {
+    "subject": "Monthly Newsletter Product Updates",
+    "sender": "news@vendor.com",
+    "body": "Here are the latest updates. Unsubscribe at the bottom.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Urgent: Invoice Discrepancy",
+    "sender": "accounts@partner.com",
+    "body": "This is urgent. The invoice total seems incorrect. Please advise.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Meeting request for Q1 planning",
+    "sender": "alex@company.com",
+    "body": "Can we schedule a meeting next week to plan Q1 deliverables?",
+    "label": "respond"
+  },
+  {
+    "subject": "System error report",
+    "sender": "monitoring@service.com",
+    "body": "We detected a failed job overnight. No action requested yet.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Social digest",
+    "sender": "no-reply@social.com",
+    "body": "Your weekly social media digest is ready.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Follow up on proposal",
+    "sender": "maria@client.org",
+    "body": "Just following up—do you have time this week? Please confirm availability.",
+    "label": "respond"
+  },
+  {
+    "subject": "Complaint escalation",
+    "sender": "support@client.org",
+    "body": "This needs immediate attention. The client is upset.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Promotion 50% off",
+    "sender": "promo@store.com",
+    "body": "Limited-time sale. Unsubscribe here.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Question about deadline",
+    "sender": "sam@team.com",
+    "body": "What is the deadline for the Q2 submission?",
+    "label": "respond"
+  },
+  {
+    "subject": "Internal error logs",
+    "sender": "it@company.com",
+    "body": "FYI: overnight errors logged, no immediate action requested.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Weekly Marketing Newsletter",
+    "sender": "marketing@company.com",
+    "body": "Check out our new campaigns. Unsubscribe if not interested.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Urgent server downtime",
+    "sender": "ops@infra.com",
+    "body": "Immediate action required. Servers are down.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Schedule a demo",
+    "sender": "sales@vendor.com",
+    "body": "Can we schedule a demo next week?",
+    "label": "respond"
+  },
+  {
+    "subject": "Password reset notification",
+    "sender": "security@service.com",
+    "body": "Your password was reset successfully.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Client escalation",
+    "sender": "manager@company.com",
+    "body": "The client is unhappy. Please review immediately.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Lunch meeting request",
+    "sender": "colleague@company.com",
+    "body": "Would you be free for lunch tomorrow?",
+    "label": "respond"
+  },
+  {
+    "subject": "Promotional offer",
+    "sender": "offers@store.com",
+    "body": "Get 30% off your next purchase.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Error in financial report",
+    "sender": "finance@company.com",
+    "body": "We found an error in the Q4 report. Please check.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Team meeting agenda",
+    "sender": "hr@company.com",
+    "body": "Please review the agenda for tomorrow’s team meeting.",
+    "label": "respond"
+  },
+  {
+    "subject": "Weekly digest",
+    "sender": "digest@service.com",
+    "body": "Here’s your weekly digest.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Urgent bug fix required",
+    "sender": "dev@company.com",
+    "body": "Critical bug found in production. Needs immediate fix.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Request for feedback",
+    "sender": "colleague@company.com",
+    "body": "Can you provide feedback on my draft?",
+    "label": "respond"
+  },
+  {
+    "subject": "Promotional newsletter",
+    "sender": "ads@vendor.com",
+    "body": "Check out our new deals.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Escalation: unhappy client",
+    "sender": "support@company.com",
+    "body": "Client is unhappy with service. Needs urgent review.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Schedule interview",
+    "sender": "recruiter@company.com",
+    "body": "Can we schedule an interview next week?",
+    "label": "respond"
+  },
+  {
+    "subject": "System maintenance notice",
+    "sender": "it@company.com",
+    "body": "Scheduled maintenance this weekend. No action required.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Urgent: payment issue",
+    "sender": "billing@vendor.com",
+    "body": "Payment failed. Needs immediate resolution.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Question about project timeline",
+    "sender": "team@company.com",
+    "body": "What’s the timeline for the new project?",
+    "label": "respond"
+  },
+  {
+    "subject": "Promotional email",
+    "sender": "promo@vendor.com",
+    "body": "Special offer just for you.",
+    "label": "ignore"
+  },
+  {
+    "subject": "Urgent escalation",
+    "sender": "manager@company.com",
+    "body": "Escalation required for client issue.",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Weekly Sales Digest",
+    "body": "Here are the latest sales highlights from this week.",
+    "sender": "sales@company.com",
+    "label": "ignore"
+  },
+  {
+    "subject": "Promotional discount 70% off",
+    "body": "Exclusive offer just for you. Save big today!",
+    "sender": "promo@store.com",
+    "label": "ignore"
+  },
+  {
+    "subject": "System maintenance completed",
+    "body": "Your system has been successfully updated.",
+    "sender": "it-support@company.com",
+    "label": "ignore"
+  },
+  {
+    "subject": "Social media highlights",
+    "body": "Check out the top posts from our community.",
+    "sender": "social@platform.com",
+    "label": "ignore"
+  },
+  {
+    "subject": "Password reset confirmation",
+    "body": "Your password has been reset successfully.",
+    "sender": "security@company.com",
+    "label": "ignore"
+  },
+  {
+    "subject": "Critical server outage",
+    "body": "Our servers are currently down and need immediate attention.",
+    "sender": "ops@company.com",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Escalation: VIP client complaint",
+    "body": "A VIP client has raised a serious complaint requiring urgent handling.",
+    "sender": "support@company.com",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Invoice discrepancy detected",
+    "body": "There is a mismatch in the invoice totals that needs review.",
+    "sender": "finance@company.com",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Error in payroll system",
+    "body": "Payroll processing failed due to a system error.",
+    "sender": "hr@company.com",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Urgent: Payment failed for subscription",
+    "body": "The client’s subscription payment did not go through.",
+    "sender": "billing@company.com",
+    "label": "notify_human"
+  },
+  {
+    "subject": "Request for project update",
+    "body": "Could you provide the latest status on the project?",
+    "sender": "manager@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Can you confirm the deadline?",
+    "body": "Please confirm if the deadline is still next Friday.",
+    "sender": "colleague@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Proposal feedback needed",
+    "body": "We’d appreciate your feedback on the attached proposal.",
+    "sender": "partner@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Schedule interview with candidate",
+    "body": "Can you arrange an interview slot for next week?",
+    "sender": "hr@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Follow up on meeting agenda",
+    "body": "Just following up to confirm the agenda for tomorrow’s meeting.",
+    "sender": "teamlead@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Question about budget allocation",
+    "body": "Do we have enough budget for the new initiative?",
+    "sender": "finance@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Availability for team lunch",
+    "body": "Are you available for a team lunch next Wednesday?",
+    "sender": "colleague@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Please review attached document",
+    "body": "Kindly review the attached draft and share your comments.",
+    "sender": "editor@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Confirm attendance for workshop",
+    "body": "Please confirm if you’ll attend the upcoming workshop.",
+    "sender": "training@company.com",
+    "label": "respond"
+  },
+  {
+    "subject": "Feedback request on draft report",
+    "body": "Could you provide feedback on the draft report by tomorrow?",
+    "sender": "analyst@company.com",
+    "label": "respond"
+  }
+]
