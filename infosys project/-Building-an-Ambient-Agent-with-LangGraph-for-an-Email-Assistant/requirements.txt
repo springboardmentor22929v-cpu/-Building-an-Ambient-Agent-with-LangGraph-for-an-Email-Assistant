@@ -1,0 +1,6 @@
+langgraph
+langchain
+langchain-google-genai
+langsmith
+python-dotenv
+pydantic
