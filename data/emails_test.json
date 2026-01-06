@@ -1,0 +1,61 @@
+[
+  { "email": "Big Sale Offer!!! Buy now and get 50% off.", "expected": "ignore" },
+  { "email": "Limited time discount on electronics. Shop today!", "expected": "ignore" },
+  { "email": "You have won a lucky draw. Claim your prize now.", "expected": "ignore" },
+  { "email": "Exclusive deal just for you. Lowest prices guaranteed.", "expected": "ignore" },
+  { "email": "Flash sale ending tonight. Don't miss out.", "expected": "ignore" },
+
+  { "email": "Hurry up! Lowest price guaranteed only today.", "expected": "ignore" },
+  { "email": "Special promotional offer for valued customers.", "expected": "ignore" },
+  { "email": "Buy one get one free on selected items.", "expected": "ignore" },
+  { "email": "Mega sale starts now. Click to shop.", "expected": "ignore" },
+  { "email": "Congratulations! You are selected for a free gift card.", "expected": "ignore" },
+
+  { "email": "Amazing discounts available now. Limited period offer.", "expected": "ignore" },
+  { "email": "Earn money from home with this simple trick.", "expected": "ignore" },
+  { "email": "Exclusive membership offer. Join today.", "expected": "ignore" },
+  { "email": "Lowest prices ever on gadgets. Buy now.", "expected": "ignore" },
+  { "email": "Win exciting prizes by participating today.", "expected": "ignore" },
+
+  { "email": "This promotional message is sent to all customers.", "expected": "ignore" },
+  { "email": "Advertisement: New credit card benefits available.", "expected": "ignore" },
+  { "email": "Sponsored offer: Upgrade your plan and save more.", "expected": "ignore" },
+  { "email": "Marketing newsletter – latest deals and updates.", "expected": "ignore" },
+  { "email": "Special cashback offer when you shop online.", "expected": "ignore" },
+
+  { "email": "Meeting tomorrow at 10 AM. Please confirm your availability.", "expected": "respond_or_act" },
+  { "email": "Can we schedule a call to discuss the project updates?", "expected": "respond_or_act" },
+  { "email": "Please review the attached document and share your feedback.", "expected": "respond_or_act" },
+  { "email": "Let me know if you are free this Friday for a quick sync.", "expected": "respond_or_act" },
+  { "email": "Kindly approve the request so I can proceed further.", "expected": "respond_or_act" },
+
+  { "email": "Please confirm your participation in tomorrow's presentation.", "expected": "respond_or_act" },
+  { "email": "Can you share the final version of the report by today?", "expected": "respond_or_act" },
+  { "email": "Let's arrange a meeting to finalize the requirements.", "expected": "respond_or_act" },
+  { "email": "Please respond if you are available for a quick call.", "expected": "respond_or_act" },
+  { "email": "Action required: Approve the budget request.", "expected": "respond_or_act" },
+
+  { "email": "Please acknowledge receipt of this email.", "expected": "respond_or_act" },
+  { "email": "Let me know your thoughts on the proposal.", "expected": "respond_or_act" },
+  { "email": "Are you available for a discussion this afternoon?", "expected": "respond_or_act" },
+  { "email": "Kindly provide approval to proceed with deployment.", "expected": "respond_or_act" },
+  { "email": "Please reply with your preferred meeting slot.", "expected": "respond_or_act" },
+
+  { "email": "Urgent: Client approval required before end of day.", "expected": "respond_or_act" },
+  { "email": "Action needed from your side to continue the process.", "expected": "respond_or_act" },
+  { "email": "Waiting for your confirmation to proceed.", "expected": "respond_or_act" },
+  { "email": "Can you validate the changes and approve?", "expected": "respond_or_act" },
+  { "email": "Immediate response required regarding deployment.", "expected": "respond_or_act" },
+
+  { "email": "Project deadline has been moved to next Friday.", "expected": "notify_human" },
+  { "email": "Team meeting summary from today's discussion.", "expected": "notify_human" },
+  { "email": "Please note the office will remain closed on Monday.", "expected": "notify_human" },
+  { "email": "FYI: Server maintenance is scheduled this weekend.", "expected": "notify_human" },
+  { "email": "Weekly report has been uploaded to the shared drive.", "expected": "notify_human" },
+
+  { "email": "Reminder: Submit your timesheet by end of day.", "expected": "notify_human" },
+  { "email": "Updated company policy document attached.", "expected": "notify_human" },
+  { "email": "Information regarding upcoming training session.", "expected": "notify_human" },
+  { "email": "Announcement: New project allocation details.", "expected": "notify_human" },
+  { "email": "Please be informed about the revised working hours.", "expected": "notify_human" }
+]
