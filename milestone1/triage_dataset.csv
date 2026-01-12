@@ -1,0 +1,81 @@
+Email,Category
+"From: college@university.edu
+Subject: Exam timetable for next week",notify_human
+"From: hr@company.com
+Subject: Interview scheduled for Monday",notify_human
+"From: offers@shopping.com
+Subject: 70% discount on electronics",ignore
+"From: spam@lottery.com
+Subject: You won a million dollars",ignore
+"From: professor@university.edu
+Subject: Assignment submission deadline",notify_human
+"From: friend@gmail.com
+Subject: Can we meet tomorrow?",respond
+"From: amazon@amazon.in
+Subject: Your order has been shipped",respond
+"From: training@internship.com
+Subject: Session reminder for today",respond
+"From: bank@icici.com
+Subject: Your monthly account statement",notify_human
+"From: promo@store.com
+Subject: Buy one get one free",ignore
+"From: college@university.edu
+Subject: Internal exam venue announced",notify_human
+"From: hr@company.com
+Subject: Offer letter discussion",respond
+"From: deals@shopping.com
+Subject: Big billion days sale",ignore
+"From: spam@casino.com
+Subject: Free casino credits",ignore
+"From: professor@university.edu
+Subject: Project review meeting",respond
+"From: friend@gmail.com
+Subject: Birthday party invitation",respond
+"From: flipkart@flipkart.com
+Subject: Your item is out for delivery",respond
+"From: training@internship.com
+Subject: Attendance required today",respond
+"From: bank@sbi.com
+Subject: Credit card bill due",respond
+"From: promo@store.com
+Subject: Flash sale ends tonight",ignore
+"From: college@university.edu
+Subject: Practical exam schedule",notify_human
+"From: hr@company.com
+Subject: Interview feedback",respond
+"From: offers@shopping.com
+Subject: Clearance sale",ignore
+"From: spam@prize.com
+Subject: Claim your prize now",ignore
+"From: professor@university.edu
+Subject: Research paper submission",respond
+"From: friend@gmail.com
+Subject: Trip planning",respond
+"From: myntra@myntra.com
+Subject: Your refund has been processed",respond
+"From: training@internship.com
+Subject: Final evaluation details",respond
+"From: bank@hdfc.com
+Subject: Loan EMI reminder",respond
+"From: promo@store.com
+Subject: Exclusive member discount",ignore
+"From: college@university.edu
+Subject: Semester result announced",respond
+"From: hr@company.com
+Subject: HR policy update",respond
+"From: deals@shopping.com
+Subject: Weekend mega sale",ignore
+"From: spam@ads.com
+Subject: Earn money fast",ignore
+"From: professor@university.edu
+Subject: Viva voce schedule",notify_human
+"From: friend@gmail.com
+Subject: Lunch tomorrow?",respond
+"From: amazon@amazon.in
+Subject: Delivery delayed",respond
+"From: training@internship.com
+Subject: Project demo reminder",respond
+"From: bank@axis.com
+Subject: Debit card usage alert",respond
+"From: promo@store.com
+Subject: Limited time offer",ignore
