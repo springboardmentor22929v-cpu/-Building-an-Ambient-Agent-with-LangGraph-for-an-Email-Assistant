@@ -1,10 +1,7 @@
 import csv
 from langgraph.graph import StateGraph, END
-from emails import emails
-
-# -----------------------------
+from emails import email
 # Mock Gemini triage function
-# -----------------------------
 def mock_gemini_triage(email):
     """
     A simple mock classifier for emails.
@@ -20,39 +17,26 @@ def mock_gemini_triage(email):
         return "notify_human"
     else:
         return "respond"
-
-# -----------------------------
-# Triage node for LangGraph
-# -----------------------------
 def triage_node(state):
     email = state["email"]
     decision = mock_gemini_triage(email)
     state["triage"] = decision
     print("Mock triage:", decision)
     return state
-
-# -----------------------------
-# Setup LangGraph
-# -----------------------------
 graph = StateGraph(dict)
 graph.add_node("triage", triage_node)
 graph.set_entry_point("triage")
 graph.add_edge("triage", END)
 app = graph.compile()
-
-# -----------------------------
-# Run triage on 40 draft emails
-# -----------------------------
 if __name__ == "__main__":
     results = []
     for email in emails:
         out = app.invoke({"email": email})
         results.append([email, out["triage"]])
-
-    # Save CSV
     with open("triage_dataset.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["Email", "Category"])
         writer.writerows(results)
 
     print("Saved triage_dataset.csv with 40 labeled emails")
+
