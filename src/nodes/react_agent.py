@@ -22,20 +22,20 @@ def react_agent_node(state: EmailAgentState) -> EmailAgentState:
     
     calendar_info = ""
     if needs_calendar:
-        print("  📅 Detected meeting request - checking calendar")
+        print("  Detected meeting request - checking calendar")
         # Mock calendar check
         calendar_info = "\n\nAvailable times this week: Tuesday 2pm, Wednesday 10am, Thursday 3pm"
     
     # Step 2: Check for past context
     past_context = ""
     if state.get('email_from'):
-        print("  🔍 Searching past emails for context")
+        print("  Searching past emails for context")
         # Mock search
         if "colleague" in state['email_from']:
             past_context = "\n\nContext: You've previously discussed the Q4 project with this person."
     
     # Step 3: Draft the reply
-    print("  ✍️  Drafting reply")
+    print("   Drafting reply")
     
     draft_prompt = f"""You are a helpful email assistant. Draft a professional reply to this email:
 

@@ -21,14 +21,14 @@ def create_email_agent():
         decision = state["triage_decision"]
         
         if decision == "ignore":
-            print("📦 Action: Archiving email")
+            print(" Action: Archiving email")
             return "end"
         elif decision == "notify_human":
-            print("🚨 Action: Notifying human")
+            print(" Action: Notifying human")
             return "end"
         elif decision == "respond":
-            print("🤖 Action: Drafting response")
-            return "react"  # Now we go to ReAct!
+            print("Action: Drafting response")
+            return "react"  
         
         return "end"
     

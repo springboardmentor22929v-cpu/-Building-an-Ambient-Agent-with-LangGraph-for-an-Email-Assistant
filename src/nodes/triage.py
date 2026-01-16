@@ -58,7 +58,7 @@ def triage_node(state: EmailAgentState) -> EmailAgentState:
     """
     Classifies an incoming email into ignore, notify_human, or respond.
     """
-    print(f"\n🔍 TRIAGE: Processing email from {state['email_from']}")
+    print(f"\n TRIAGE: Processing email from {state['email_from']}")
     
     # Create the full prompt
     prompt_text = triage_prompt.format(
@@ -85,7 +85,7 @@ def triage_node(state: EmailAgentState) -> EmailAgentState:
     
     # Validate decision
     if decision not in ["ignore", "notify_human", "respond"]:
-        print(f"⚠️ Invalid decision '{decision}', defaulting to notify_human")
+        print(f" Invalid decision '{decision}', defaulting to notify_human")
         decision = "notify_human"
         reasoning = "Failed to parse LLM response"
     

@@ -14,7 +14,7 @@ def read_calendar(date: str) -> str:
     """
     print(f"🗓️ TOOL: Checking calendar for {date}")
     
-    # Mock data - pretend we're checking a real calendar
+    # Mock data 
     return f"Available slots on {date}: 10:00 AM, 2:00 PM, 4:00 PM"
 
 @tool
