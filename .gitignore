@@ -56,7 +56,7 @@ logs/
 Thumbs.db
 
 # Project specific
-data/
+# data/
 models/
 checkpoints/
 *.pkl
