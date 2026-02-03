@@ -2,95 +2,144 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from src.agents.state import EmailAgentState
 
-# Initialize LLM
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
-    temperature=0
+    temperature=0,
+    convert_system_message_to_human=True
 )
 
-# Single prompt template 
-triage_template = """You are an expert email triage assistant.
+triage_template = """You are an expert email triage assistant for Lance Martin, a technical professional.
 
-Your job is to classify incoming emails into exactly ONE of these categories:
+**YOUR CAPABILITIES:**
+You have access to tools that can:
+- Check calendar availability
+- Draft professional email responses
+- Schedule meetings
+- Search past emails for context
 
-1. **ignore**: 
-   - Newsletters, promotional emails, automated notifications
-   - Spam, advertisements
-   - Emails that require no action
+**CLASSIFICATION RULES:**
 
-2. **notify_human**: 
-   - Urgent issues requiring immediate human attention
-   - Sensitive topics (HR, legal, personal issues)
-   - Emails from VIPs (CEO, important clients)
-   - Unclear requests that need human judgment
+Classify this email into exactly ONE category:
 
-3. **respond**: 
-   - Clear, actionable requests you can help with
-   - Meeting requests, information queries
-   - Emails where you can draft a helpful reply
-   - Follow-ups on ongoing conversations
+1. **ignore** - Use ONLY for:
+   ✓ Generic newsletters from marketing (company updates, general news)
+   ✓ Automated notifications with no action needed (package shipped, social media likes)
+   ✓ Spam and promotional content
+   ✓ FYI emails that are not urgent or important
+   
+   Examples:
+   - "New company newsletter available" → ignore
+   - "5 people liked your post" → ignore
+   - "Your package has shipped" → ignore
+   
+   ❌ DO NOT ignore:
+   - Important industry newsletters (new tech releases, important updates)
+   - Notifications about code reviews or pull requests
+   - Reminders with deadlines
 
-Rules:
-- When in doubt between notify_human and respond, choose notify_human
-- Be conservative: better to notify human than ignore something important
-- Consider the sender's importance
+2. **notify_human** - Use ONLY for:
+   ✓ Critical system alerts or urgent issues (server down, security alerts)
+   ✓ HR deadlines and mandatory submissions requiring human action
+   ✓ Financial matters (subscription renewals, billing issues)
+   ✓ Reminders about personal decisions already made (maintenance windows)
+   ✓ Important industry updates that need human awareness (new AI models, tech releases)
+   ✓ Code review notifications and GitHub activity (human should review on platform)
+   
+   Examples:
+   - "Submit expense reports by Friday" → notify_human (human must do this)
+   - "Database maintenance tonight" → notify_human (important to know)
+   - "CPU utilization exceeds threshold" → notify_human (urgent issue)
+   - "Subscription will renew" → notify_human (financial decision)
+   - "New Model from OpenAI" → notify_human (important tech update)
+   - "PR #42: Comment from developer" → notify_human (review on GitHub)
+   
+   ❌ DO NOT notify_human for:
+   - Requests you can acknowledge by email (even if personal)
+   - Invitations you can express interest in
 
-Respond in this exact format:
-DECISION: [ignore/notify_human/respond]
-REASONING: [1-2 sentence explanation]
+3. **respond** - Use for:
+   ✓ ANY request you can answer by drafting an email
+   ✓ Meeting requests (check calendar and suggest times)
+   ✓ Technical questions (draft helpful responses)
+   ✓ Requests for reviews or feedback (acknowledge and commit)
+   ✓ Invitations or opportunities (express interest or ask questions)
+   ✓ Personal appointment reminders (acknowledge and confirm will schedule)
+   ✓ Registration invitations (express interest in signing up)
+   ✓ ANY email where acknowledging by email is helpful
+   
+   Examples:
+   - "Can we schedule a meeting?" → respond (check calendar, suggest times)
+   - "Could you review these docs?" → respond (acknowledge, commit to review)
+   - "Question about API docs" → respond (draft helpful response)
+   - "Conference invitation" → respond (express interest, ask questions)
+   - "Sign up daughter for swimming class" → respond (express interest in registering)
+   - "Annual checkup reminder" → respond (acknowledge, confirm will schedule)
+   
+   ✅ KEY INSIGHT: Drafting "I'll take care of this" or "I'm interested" is responding!
+   Even if the human must make final decision, acknowledging by email helps.
 
----
+**IMPORTANT GUIDELINES:**
+- DEFAULT to "respond" if you can draft ANY helpful acknowledgment or reply
+- Use "notify_human" for CRITICAL alerts, deadlines, or when email is just FYI
+- Use "ignore" ONLY for generic spam and unimportant automated notifications
+- Remember: Expressing interest ≠ Making final decision
+- Being helpful by drafting acknowledgment emails is your job!
 
-Now classify this email:
+**EMAIL TO CLASSIFY:**
 
 From: {email_from}
+To: {email_to}
 Subject: {email_subject}
 Body: {email_body}
 
-Your classification:"""
+**YOUR CLASSIFICATION:**
+
+Think step by step:
+1. Is this just spam/generic newsletter with no importance? → If YES, classify as "ignore"
+2. Is this a critical alert, deadline, important FYI, or GitHub notification? → If YES, classify as "notify_human"
+3. Can I help by drafting an acknowledgment, interest, or response? → If YES, classify as "respond"
+
+Respond in this EXACT format:
+DECISION: [ignore/notify_human/respond]
+REASONING: [One sentence explaining why, referencing the guidelines above]"""
 
 triage_prompt = PromptTemplate(
     template=triage_template,
-    input_variables=["email_from", "email_subject", "email_body"]
+    input_variables=["email_from", "email_to", "email_subject", "email_body"]
 )
 
 def triage_node(state: EmailAgentState) -> EmailAgentState:
     """
-    Classifies an incoming email into ignore, notify_human, or respond.
+    Classify email with improved prompt.
     """
-    print(f"\n TRIAGE: Processing email from {state['email_from']}")
     
-    # Create the full prompt
     prompt_text = triage_prompt.format(
-        email_from=state["email_from"],
-        email_subject=state["email_subject"],
-        email_body=state["email_body"]
+        email_from=state.get("email_from", ""),
+        email_to=state.get("email_to", "Lance Martin <lance@company.com>"),
+        email_subject=state.get("email_subject", ""),
+        email_body=state.get("email_body", "")
     )
     
-    # Invoke LLM
     response = llm.invoke(prompt_text)
+    content = response.content
     
     # Parse response
-    content = response.content
-    lines = content.strip().split('\n')
-    
     decision = None
     reasoning = None
     
-    for line in lines:
+    for line in content.strip().split('\n'):
         if "DECISION:" in line:
             decision = line.split(":", 1)[1].strip().lower()
         elif "REASONING:" in line:
             reasoning = line.split(":", 1)[1].strip()
     
-    # Validate decision
     if decision not in ["ignore", "notify_human", "respond"]:
-        print(f" Invalid decision '{decision}', defaulting to notify_human")
-        decision = "notify_human"
-        reasoning = "Failed to parse LLM response"
+        print(f"⚠️ Invalid decision '{decision}', defaulting to respond")
+        decision = "respond"
+        reasoning = "Failed to parse, defaulting to respond to be helpful"
     
-    print(f"✓ Decision: {decision}")
-    print(f"  Reasoning: {reasoning}")
+    # Only show result (clean output)
+    print(f"📋 {decision.upper()}")
     
     return {
         **state,

@@ -49,7 +49,7 @@ def check_calendar(
         return "Error: Calendar service not initialized. Call initialize_tools() first."
     
     try:
-        print(f"📅 Checking calendar from {start_date} to {end_date}")
+        # print(f"📅 Checking calendar from {start_date} to {end_date}")
         
         # Convert dates to RFC3339 format
         tz = pytz.timezone(timezone)
@@ -173,7 +173,7 @@ def schedule_meeting(
         return "Error: Calendar service not initialized. Call initialize_tools() first."
     
     try:
-        print(f"📆 Scheduling meeting: {title}")
+        # print(f"📆 Scheduling meeting: {title}")
         
         # Parse start time
         tz = pytz.timezone(timezone)
@@ -257,6 +257,64 @@ Calendar invitations have been sent to all attendees."""
         print(f"   ✗ {error_msg}")
         return error_msg
 
+@tool
+def send_email_reply(
+    recipient: str,
+    subject: str,
+    body: str,
+    draft_preview: str = ""
+) -> str:
+    """
+    Send an email reply (DANGEROUS - requires HITL approval).
+    
+    Args:
+        recipient: Email address of recipient
+        subject: Email subject line
+        body: Email body content
+        draft_preview: Formatted preview (optional)
+    
+    Returns:
+        Confirmation message
+    
+    Note: This is a simulated tool. In production, this would use Gmail API's send.
+    """
+    if not _gmail_service:
+        return "Error: Gmail service not initialized."
+    
+    print(f"📤 SENDING EMAIL")
+    print(f"   To: {recipient}")
+    print(f"   Subject: {subject}")
+    
+    try:
+        # In production, you would actually send via Gmail API:
+        # from email.mime.text import MIMEText
+        # import base64
+        # 
+        # message = MIMEText(body)
+        # message['to'] = recipient
+        # message['subject'] = subject
+        # raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        # 
+        # _gmail_service.users().messages().send(
+        #     userId='me',
+        #     body={'raw': raw}
+        # ).execute()
+        
+        # For now, simulate sending
+        print(f"   ✓ Email sent successfully (SIMULATED)")
+        
+        return f"""✅ Email sent successfully!
+
+To: {recipient}
+Subject: {subject}
+
+The email has been delivered."""
+        
+    except Exception as e:
+        error_msg = f"Failed to send email: {str(e)}"
+        print(f"   ✗ {error_msg}")
+        return error_msg
+
 
 @tool
 def draft_email_reply(
@@ -318,5 +376,6 @@ def get_google_tools():
     return [
         check_calendar,
         schedule_meeting,
-        draft_email_reply
+        draft_email_reply,
+        send_email_reply 
     ]

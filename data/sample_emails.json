@@ -1,284 +1,102 @@
 [
   {
-    "id": "email_001",
-    "from": "newsletter@techcrunch.com",
-    "subject": "This Week in Tech",
-    "body": "Check out our top stories from this week...",
-    "expected_triage": "ignore",
-    "category": "newsletter"
+    "id": "email_input_1",
+    "author": "Legal Department <legal@company.com>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Confidential: Review of new NDA template",
+    "email_thread": "Dear Lance,\n\nOur legal team has drafted a new Non-Disclosure Agreement template for use with external vendors. As a technical lead, we need your review of sections 4.2 and 5.1 (Intellectual Property and Confidential Information handling).\n\nPlease provide your feedback by end of day Thursday. This is a high-priority item.\n\nBest regards,\nLegal Department",
+    "ground_truth_triage": "notify",
+    "response_criteria": "• No response needed\n• This is a legal/confidential document requiring human review",
+    "expected_tool_calls": []
   },
   {
-    "id": "email_002",
-    "from": "ceo@company.com",
-    "subject": "URGENT: Board Meeting",
-    "body": "Emergency board meeting in 1 hour. Please attend.",
-    "expected_triage": "notify_human",
-    "category": "urgent"
+    "id": "email_input_2",
+    "author": "Travel Agency <bookings@travelcorp.com>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Your upcoming business trip to Singapore",
+    "email_thread": "Hello Lance,\n\nWe've received your travel request for Singapore next month. Here are the proposed options:\n\nFlight: Business class, Singapore Airlines, March 15-22\nHotel: Marina Bay Sands, Executive Suite\n\nTotal cost: $8,500\n\nPlease confirm these arrangements by Monday, or let us know if you'd like alternative options.\n\nSafe travels,\nTravel Agency Team",
+    "ground_truth_triage": "respond",
+    "response_criteria": "• Confirm travel arrangements or request alternatives\n• Send email with write_email tool call to confirm Singapore travel arrangements",
+    "expected_tool_calls": ["write_email", "done"]
   },
   {
-    "id": "email_003",
-    "from": "colleague@company.com",
-    "subject": "Can we meet next week?",
-    "body": "I'd like to sync on the Q4 project. Are you free Tuesday or Wednesday?",
-    "expected_triage": "respond",
-    "category": "meeting_request"
+    "id": "email_input_3",
+    "author": "University Alumni <alumni@university.edu>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Class of 2015 - 10 Year Reunion Invitation",
+    "email_thread": "Dear Lance,\n\nMark your calendar! The Class of 2015 10-Year Reunion is scheduled for June 20-22, 2025 at the campus quad.\n\nWe have exciting activities planned:\n- Campus tour and department visits\n- Networking dinner with faculty\n- Alumni achievement awards\n- Family picnic on Sunday\n\nEarly registration discount available until April 30th.\n\nHope to see you there!\n\nWarmly,\nAlumni Association",
+    "ground_truth_triage": "ignore",
+    "response_criteria": "• No response needed\n• This is a promotional alumni event email",
+    "expected_tool_calls": []
   },
   {
-    "id": "email_004",
-    "from": "recruiter@linkedin.com",
-    "subject": "Exciting opportunity",
-    "body": "I came across your profile and have a role that might interest you...",
-    "expected_triage": "respond",
-    "category": "recruiter"
+    "id": "email_input_4",
+    "author": "Security Team <security@company.com>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "URGENT: Unusual login activity detected",
+    "email_thread": "SECURITY ALERT\n\nWe've detected unusual login activity on your account:\n\n- Location: Tokyo, Japan\n- Time: 03:15 AM EST\n- Device: Unknown Android device\n\nIf this was not you, please:\n1. Change your password immediately\n2. Enable 2-factor authentication\n3. Contact security team\n\nIf this was you, please disregard this alert.\n\nDo NOT reply to this automated message.",
+    "ground_truth_triage": "notify",
+    "response_criteria": "• No response needed\n• This is a critical security alert requiring immediate human attention",
+    "expected_tool_calls": []
   },
   {
-    "id": "email_005",
-    "from": "noreply@amazon.com",
-    "subject": "Your order has shipped",
-    "body": "Order #12345 is on its way! Track your package here.",
-    "expected_triage": "ignore",
-    "category": "shipping_notification"
+    "id": "email_input_5",
+    "author": "Product Manager <product@startup.com>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Beta testing invitation for new AI tool",
+    "email_thread": "Hi Lance,\n\nWe're building an AI-powered code review tool and would love your expert feedback. Given your experience with ML systems, you'd be an ideal beta tester.\n\nThe beta program includes:\n- Early access to the platform\n- $500 AWS credits\n- Direct access to our engineering team\n- 6-month free subscription upon launch\n\nWould you be interested in participating? The program starts next Monday.\n\nBest,\nProduct Manager",
+    "ground_truth_triage": "respond",
+    "response_criteria": "• Express interest in beta testing\n• Ask about time commitment\n• Send email with write_email tool call to express interest in AI code review tool beta testing",
+    "expected_tool_calls": ["write_email", "done"]
   },
   {
-    "id": "email_006",
-    "from": "hr@company.com",
-    "subject": "Performance Review Scheduled",
-    "body": "Your annual performance review is scheduled for next Friday at 2pm.",
-    "expected_triage": "notify_human",
-    "category": "hr"
+    "id": "email_input_6",
+    "author": "CEO Office <ceo-office@company.com>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Direct request from CEO: Board presentation",
+    "email_thread": "Lance,\n\nThe CEO has specifically requested your participation in the Q2 Board of Directors presentation on April 15th.\n\nShe'd like you to present the technical architecture section of Project Phoenix (15 minutes).\n\nPlease let us know your availability for a dry run next week. We suggest Tuesday 2PM or Thursday 10AM.\n\nThis is a priority request.\n\nRegards,\nCEO Office",
+    "ground_truth_triage": "respond",
+    "response_criteria": "• Check calendar for dry run availability\n• Confirm participation in board presentation\n• Send email with write_email tool call to confirm board presentation participation and provide availability for dry run",
+    "expected_tool_calls": ["check_calendar_availability", "write_email", "done"]
   },
   {
-    "id": "email_007",
-    "from": "client@bigcorp.com",
-    "subject": "Re: Project Timeline",
-    "body": "Thanks for the update. Can you send me the final deliverables by EOD?",
-    "expected_triage": "respond",
-    "category": "client_request"
+    "id": "email_input_7",
+    "author": "Conference Speaker <speakers@ai-conference.org>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Your talk proposal has been accepted!",
+    "email_thread": "Congratulations Lance!\n\nYour talk proposal 'Building Autonomous Agents with LangGraph' has been accepted for AI Conference 2025.\n\nDetails:\n- Date: September 25, 2025\n- Time: 11:00 AM - 12:00 PM\n- Format: 45-minute talk + 15-minute Q&A\n- Venue: Main Hall\n\nNext steps:\n1. Confirm your participation by April 10th\n2. Submit final abstract by May 15th\n3. Schedule a speaker briefing\n\nPlease reply to confirm.\n\nExcited to have you!\nConference Committee",
+    "ground_truth_triage": "respond",
+    "response_criteria": "• Confirm conference talk participation\n• Schedule speaker briefing\n• Send email with write_email tool call to confirm AI Conference talk acceptance",
+    "expected_tool_calls": ["write_email", "done"]
   },
   {
-    "id": "email_008",
-    "from": "security@bank.com",
-    "subject": "Suspicious Activity Detected",
-    "body": "We detected unusual activity on your account. Please verify immediately.",
-    "expected_triage": "notify_human",
-    "category": "security"
+    "id": "email_input_8",
+    "author": "IT Support <helpdesk@company.com>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Your laptop upgrade is scheduled",
+    "email_thread": "Hello Lance,\n\nYour laptop upgrade request has been approved and scheduled:\n\nDate: Next Tuesday, March 18th\nTime: 10:00 AM - 12:00 PM\nLocation: IT Department, Building C\nNew Device: MacBook Pro M3 Max, 64GB RAM, 2TB SSD\n\nPlease ensure to:\n1. Back up all data before the appointment\n2. Bring your current laptop and charger\n3. Allow 2 hours for setup and data transfer\n\nIf this time doesn't work, please reply with alternative availability.\n\nIT Support Team",
+    "ground_truth_triage": "notify",
+    "response_criteria": "• No response needed unless rescheduling required\n• This is a scheduled maintenance notification",
+    "expected_tool_calls": []
   },
   {
-    "id": "email_009",
-    "from": "team@company.com",
-    "subject": "FYI: New Office Hours",
-    "body": "Starting next week, office hours will be 9am-5pm.",
-    "expected_triage": "ignore",
-    "category": "fyi"
+    "id": "email_input_9",
+    "author": "Vendor Partnership <partnerships@techvendor.com>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Partnership opportunity: Integration development",
+    "email_thread": "Dear Lance,\n\nWe're reaching out regarding a potential partnership opportunity. Our company specializes in enterprise AI tools, and we've been following your work with LangGraph.\n\nWe're interested in:\n1. Co-developing an integration between our platforms\n2. Joint webinar or whitepaper\n3. Potential revenue sharing arrangement\n\nWould you be open to a 30-minute introductory call next week to discuss possibilities?\n\nLooking forward to collaborating,\nPartnerships Director",
+    "ground_truth_triage": "respond",
+    "response_criteria": "• Express interest in partnership discussion\n• Check calendar for 30-minute meeting availability\n• Send email with write_email tool call to express interest in partnership discussion and provide availability",
+    "expected_tool_calls": ["check_calendar_availability", "write_email", "done"]
   },
   {
-    "id": "email_010",
-    "from": "support@service.com",
-    "subject": "Your ticket #5678 has been resolved",
-    "body": "We've resolved your support ticket. Reply if you need further assistance.",
-    "expected_triage": "ignore",
-    "category": "support_resolved"
-  },
-
-  {
-    "id": "email_011",
-    "from": "newsletter@shopping.com",
-    "subject": "🔥 Big Sale This Weekend!",
-    "body": "Don’t miss our biggest discounts of the year. Shop now!",
-    "category": "promotional",
-    "expected_triage": "ignore"
-  },
-  {
-    "id": "email_012",
-    "from": "alerts@bank.com",
-    "subject": "Your monthly statement is ready",
-    "body": "Your bank statement for September is now available.",
-    "category": "fyi",
-    "expected_triage": "ignore"
-  },
-  {
-    "id": "email_013",
-    "from": "noreply@linkedin.com",
-    "subject": "You appeared in 5 searches this week",
-    "body": "See who viewed your profile.",
-    "category": "notification",
-    "expected_triage": "ignore"
-  },
-  {
-    "id": "email_014",
-    "from": "offers@fooddelivery.com",
-    "subject": "50% OFF on your next order",
-    "body": "Use code SAVE50 to get discount.",
-    "category": "promotional",
-    "expected_triage": "ignore"
-  },
-  {
-    "id": "email_015",
-    "from": "hr@company.com",
-    "subject": "Confidential: Salary Adjustment Discussion",
-    "body": "We need to discuss a sensitive matter regarding compensation.",
-    "category": "hr",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_016",
-    "from": "legal@company.com",
-    "subject": "Legal Notice Regarding Contract",
-    "body": "Please review the attached legal notice urgently.",
-    "category": "legal",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_017",
-    "from": "ceo@company.com",
-    "subject": "Urgent: Board Meeting Update",
-    "body": "Please call me as soon as you see this.",
-    "category": "executive",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_018",
-    "from": "manager@company.com",
-    "subject": "Performance issue",
-    "body": "We need to talk about recent performance concerns.",
-    "category": "management",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_019",
-    "from": "security@company.com",
-    "subject": "Suspicious login detected",
-    "body": "We detected unusual activity on your account.",
-    "category": "security",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_020",
-    "from": "friend@gmail.com",
-    "subject": "Need help with documents",
-    "body": "Can you help me review my resume?",
-    "category": "personal",
-    "expected_triage": "respond"
-  },
-  {
-    "id": "email_021",
-    "from": "client@business.com",
-    "subject": "Meeting request",
-    "body": "Are you available tomorrow afternoon for a meeting?",
-    "category": "client_request",
-    "expected_triage": "respond"
-  },
-  {
-    "id": "email_022",
-    "from": "colleague@company.com",
-    "subject": "Project deadline clarification",
-    "body": "Can you confirm the final submission date?",
-    "category": "internal_query",
-    "expected_triage": "respond"
-  },
-  {
-    "id": "email_023",
-    "from": "recruiter@jobs.com",
-    "subject": "Interview availability",
-    "body": "Please let us know your availability for an interview this week.",
-    "category": "recruitment",
-    "expected_triage": "respond"
-  },
-  {
-    "id": "email_024",
-    "from": "support@software.com",
-    "subject": "Ticket follow-up",
-    "body": "We need additional details to resolve your issue.",
-    "category": "support_pending",
-    "expected_triage": "respond"
-  },
-  {
-    "id": "email_025",
-    "from": "newsletter@techblog.com",
-    "subject": "Top 10 AI trends in 2025",
-    "body": "Read about the latest trends in AI and ML.",
-    "category": "fyi",
-    "expected_triage": "ignore"
-  },
-  {
-    "id": "email_026",
-    "from": "unknown@random.com",
-    "subject": "Quick question",
-    "body": "Hey, can you call me?",
-    "category": "ambiguous",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_027",
-    "from": "billing@cloudservice.com",
-    "subject": "Payment failed",
-    "body": "Your last payment could not be processed.",
-    "category": "billing",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_028",
-    "from": "team@company.com",
-    "subject": "Weekly status update",
-    "body": "Here is the weekly project update.",
-    "category": "fyi",
-    "expected_triage": "ignore"
-  },
-  {
-    "id": "email_029",
-    "from": "student@college.edu",
-    "subject": "Request for guidance",
-    "body": "Could you guide me on preparing for interviews?",
-    "category": "mentorship",
-    "expected_triage": "respond"
-  },
-  {
-    "id": "email_030",
-    "from": "marketing@brand.com",
-    "subject": "Collaboration opportunity",
-    "body": "We would love to collaborate with you.",
-    "category": "partnership",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_031",
-    "from": "boss@company.com",
-    "subject": "Need report today",
-    "body": "Please send the report by EOD today.",
-    "category": "urgent_work",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_032",
-    "from": "colleague@company.com",
-    "subject": "Code review request",
-    "body": "Can you review my PR when you get time?",
-    "category": "engineering",
-    "expected_triage": "respond"
-  },
-  {
-    "id": "email_033",
-    "from": "events@conference.com",
-    "subject": "Thank you for attending",
-    "body": "We appreciate your participation in our event.",
-    "category": "fyi",
-    "expected_triage": "ignore"
-  },
-  {
-    "id": "email_034",
-    "from": "admin@apartment.com",
-    "subject": "Maintenance notice",
-    "body": "Water supply will be unavailable tomorrow morning.",
-    "category": "facility_notice",
-    "expected_triage": "notify_human"
-  },
-  {
-    "id": "email_035",
-    "from": "spam@fakeoffers.com",
-    "subject": "You won a prize!",
-    "body": "Click here to claim your reward.",
-    "category": "spam",
-    "expected_triage": "ignore"
+    "id": "email_input_10",
+    "author": "Neighborhood Association <board@neighborhood.org>",
+    "to": "Lance Martin <lance@company.com>",
+    "subject": "Important: Annual HOA meeting and budget vote",
+    "email_thread": "Dear Resident,\n\nThe Annual Homeowners Association Meeting is scheduled for April 10th at 7:00 PM in the community clubhouse.\n\nKey agenda items:\n1. 2025-2026 Budget approval (includes 5% increase for maintenance)\n2. Pool renovation project vote\n3. New board member elections\n4. Security camera installation proposal\n\nYour attendance and vote are important. Proxy voting forms are available if you cannot attend.\n\nSincerely,\nHOA Board",
+    "ground_truth_triage": "ignore",
+    "response_criteria": "• No response needed\n• This is a community announcement/bulk email",
+    "expected_tool_calls": []
   }
 ]
-

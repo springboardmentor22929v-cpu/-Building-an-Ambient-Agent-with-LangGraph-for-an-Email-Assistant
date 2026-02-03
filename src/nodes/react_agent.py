@@ -1,105 +1,161 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from src.agents.state import EmailAgentState
 from src.tools.google_tools import get_google_tools
+from datetime import datetime, timedelta
 
-# Initialize LLM
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     temperature=0.3,
     convert_system_message_to_human=True
 )
 
-# Bind tools to LLM (if supported, otherwise use manual approach)
+
 def react_agent_node(state: EmailAgentState) -> EmailAgentState:
     """
-    ReAct agent with Google tools integration.
+    ReAct agent that creates actions requiring HITL approval.
     """
     print(f"\n🤖 REACT AGENT: Processing email from {state['email_from']}")
     
+    email_body = state['email_body'].lower()
+    email_subject = state['email_subject'].lower()
+    
     # Get tools
     tools = get_google_tools()
-    tool_dict = {tool.name: tool for tool in tools}
+    check_calendar_tool = tools[0]
+    schedule_meeting_tool = tools[1]
+    draft_email_tool = tools[2]
     
-    # Initialize messages
-    messages = state.get("messages", [])
+    # Detect meeting request
+    meeting_keywords = ['meet', 'schedule', 'call', 'sync', 'catch up', 'discuss']
+    is_meeting_request = any(keyword in email_body or keyword in email_subject for keyword in meeting_keywords)
     
-    if not messages:
-        # Initial prompt
-        initial_prompt = f"""You are an email assistant helping respond to this email:
+    calendar_info = ""
+    pending_action = None
+    
+    # Step 1: Check calendar if meeting request (safe - auto-execute)
+    if is_meeting_request:
+        start_date, end_date = extract_date_range(state['email_body'])
+        
+        try:
+            calendar_result = check_calendar_tool.invoke({
+                "start_date": start_date,
+                "end_date": end_date,
+                "timezone": "Asia/Kolkata"
+            })
+            
+            calendar_info = calendar_result
+            print("   ✓ Calendar checked")
+            
+        except Exception as e:
+            calendar_info = "Could not check calendar."
+    
+    # Step 2: Draft email (safe - auto-execute)
+    draft_context = f"""Draft a professional email reply.
 
+Original Email:
 From: {state['email_from']}
 Subject: {state['email_subject']}
 Body: {state['email_body']}
 
-Available tools:
-1. check_calendar - Check available time slots
-2. schedule_meeting - Create calendar events  
-3. draft_email_reply - Draft professional email responses
+{f"Calendar Availability:\n{calendar_info}" if calendar_info else ""}
 
-Your goal: Help respond to this email appropriately.
+Instructions:
+- Professional but friendly tone
+- Concise (2-3 paragraphs)
+- Use DD-MM-YYYY date format
+- If meeting request, suggest 2-3 specific times
+- Sign off with "Best regards"
 
-If it's a meeting request:
-- Use check_calendar to find available times
-- Draft a reply suggesting those times
-- DO NOT schedule meetings without explicit confirmation
+Draft:"""
 
-If it's a question or request:
-- Draft an appropriate reply using draft_email_reply
-
-Think step by step. What should you do first?"""
+    try:
+        draft_response = llm.invoke(draft_context)
+        draft_content = draft_response.content
         
-        messages.append(HumanMessage(content=initial_prompt))
+        formatted_draft = draft_email_tool.invoke({
+            "recipient": state['email_from'],
+            "subject": f"Re: {state['email_subject']}" if not state['email_subject'].startswith('Re:') else state['email_subject'],
+            "body_content": draft_content,
+            "original_subject": state['email_subject']
+        })
+        
+        print("   ✓ Draft created")
+        
+    except Exception as e:
+        formatted_draft = f"Error: {e}"
+        print(f"   ✗ Error creating draft")
+        draft_content = ""
     
-    # Simple ReAct loop (without bind_tools)
-    max_iterations = 5
+    # Step 3: Determine what action to take
+    # For email replies, sending is DANGEROUS - requires approval
     
-    for iteration in range(max_iterations):
-        print(f"\n  🔄 Iteration {iteration + 1}/{max_iterations}")
+    if is_meeting_request:
+        # Meeting request: Create action to SEND email with meeting proposal
+        action_type = "send_email_reply"  # DANGEROUS - requires HITL
         
-        # Get LLM response
-        try:
-            response = llm.invoke(messages[-1:])
-            messages.append(response)
-        except Exception as e:
-            print("⚠️ Gemini stopped generation early (safe to ignore)")
-            break
-
+        pending_action = {
+            "action_type": action_type,
+            "args": {
+                "recipient": state['email_from'],
+                "subject": f"Re: {state['email_subject']}",
+                "body": draft_content,
+                "draft_preview": formatted_draft
+            }
+        }
         
-        # Check if response wants to use tools
-        # Simple keyword detection (production would use function calling)
-        content = response.content.lower()
+        print(f"   📤 Action queued: {action_type} (requires approval)")
         
-        tool_used = False
+    else:
+        # Simple question: Also requires approval before sending
+        action_type = "send_email_reply"  # DANGEROUS
         
-        # Check for tool usage keywords
-        if "check_calendar" in content or "check my calendar" in content:
-            print(f"  🛠️  Detected: check_calendar needed")
-            # Extract dates from context or use default
-            from datetime import datetime, timedelta
-            today = datetime.now()
-            next_week = today + timedelta(days=7)
-            
-            result = tools[0].invoke({  # check_calendar
-                "start_date": today.strftime("%d-%m-%Y"),
-                "end_date": next_week.strftime("%d-%m-%Y")
-            })
-            
-            messages.append(HumanMessage(content=f"Calendar availability:\n{result}\nPlease draft a professional reply suggesting suitable times."))
-            tool_used = True
+        pending_action = {
+            "action_type": action_type,
+            "args": {
+                "recipient": state['email_from'],
+                "subject": f"Re: {state['email_subject']}",
+                "body": draft_content,
+                "draft_preview": formatted_draft
+            }
+        }
         
-        elif "draft_email" in content or "draft a reply" in content:
-            print(f"  ✍️  Agent wants to draft email")
-            # Let the agent's response be the draft
-            break
-        
-        if not tool_used:
-            # Agent is done or gave final answer
-            break
+        print(f"   📤 Action queued: {action_type} (requires approval)")
     
-    print(f"✓ ReAct agent completed")
+    # Store results
+    messages = [
+        {
+            "role": "assistant",
+            "content": formatted_draft,
+            "metadata": {
+                "is_meeting_request": is_meeting_request,
+                "calendar_checked": bool(calendar_info)
+            }
+        }
+    ]
     
     return {
         **state,
-        "messages": messages
+        "messages": messages,
+        "pending_action": pending_action
     }
+
+
+def extract_date_range(email_body: str) -> tuple:
+    """Extract date range from email or return defaults."""
+    body_lower = email_body.lower()
+    today = datetime.now()
+    
+    if 'tomorrow' in body_lower:
+        start = today + timedelta(days=1)
+        end = start + timedelta(days=1)
+    elif 'next week' in body_lower:
+        days_until_monday = (7 - today.weekday()) % 7
+        if days_until_monday == 0:
+            days_until_monday = 7
+        start = today + timedelta(days=days_until_monday)
+        end = start + timedelta(days=5)
+    else:
+        start = today + timedelta(days=1)
+        end = start + timedelta(days=5)
+    
+    return start.strftime("%d-%m-%Y"), end.strftime("%d-%m-%Y")
