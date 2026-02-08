@@ -1,0 +1,12 @@
+.env
+api
+credentials.json
+token.json
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.langgraph_api/
+latest_email.json
+triage_result.json
+results.json
