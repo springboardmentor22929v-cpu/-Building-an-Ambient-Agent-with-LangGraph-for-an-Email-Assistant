@@ -1,0 +1,212 @@
+[
+  {
+    "from": "NPTEL <onlinecourses@nptel.iitm.ac.in>",
+    "subject": "NPTEL Newsletter: Enroll Now for Executive Program",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Amazon <deals@amazon.in>",
+    "subject": "Limited Time Offer \u2013 Up to 70% OFF",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "LinkedIn <notifications@linkedin.com>",
+    "subject": "Jobs you may be interested in",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Coursera <newsletter@coursera.org>",
+    "subject": "Top courses this week",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Flipkart <promo@flipkart.com>",
+    "subject": "Big Billion Days Sale is Live",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Medium <digest@medium.com>",
+    "subject": "Your daily reading list",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Udemy <offers@udemy.com>",
+    "subject": "Courses starting at \u20b9499",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Zomato <promo@zomato.com>",
+    "subject": "Flat 50% off on dining",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Spotify <news@spotify.com>",
+    "subject": "Your music stats are ready",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Swiggy <offers@swiggy.in>",
+    "subject": "Free delivery today",
+    "true": "ignore",
+    "predicted": "ignore",
+    "correct": true
+  },
+  {
+    "from": "Amrita University <exam@amrita.edu>",
+    "subject": "Semester Examination Results Published",
+    "true": "notify_human",
+    "predicted": "notify_human",
+    "correct": true
+  },
+  {
+    "from": "SBI Bank <alerts@sbi.co.in>",
+    "subject": "Account Statement Available",
+    "true": "notify_human",
+    "predicted": "ignore",
+    "correct": false
+  },
+  {
+    "from": "Google Security <no-reply@accounts.google.com>",
+    "subject": "New sign-in detected",
+    "true": "notify_human",
+    "predicted": "notify_human",
+    "correct": true
+  },
+  {
+    "from": "Library <library@college.edu>",
+    "subject": "Book Due Reminder",
+    "true": "notify_human",
+    "predicted": "notify_human",
+    "correct": true
+  },
+  {
+    "from": "IT Admin <itadmin@company.com>",
+    "subject": "Scheduled System Maintenance",
+    "true": "notify_human",
+    "predicted": "notify_human",
+    "correct": true
+  },
+  {
+    "from": "Courier <updates@bluedart.com>",
+    "subject": "Package Delivered",
+    "true": "notify_human",
+    "predicted": "notify_human",
+    "correct": true
+  },
+  {
+    "from": "College Office <office@college.edu>",
+    "subject": "Holiday Notification",
+    "true": "notify_human",
+    "predicted": "notify_human",
+    "correct": true
+  },
+  {
+    "from": "HR Department <hr@company.com>",
+    "subject": "Policy Update",
+    "true": "notify_human",
+    "predicted": "respond_act",
+    "correct": false
+  },
+  {
+    "from": "Hostel Office <hostel@college.edu>",
+    "subject": "Room Inspection Notice",
+    "true": "notify_human",
+    "predicted": "notify_human",
+    "correct": true
+  },
+  {
+    "from": "Exam Cell <notifications@university.edu>",
+    "subject": "Hall Ticket Released",
+    "true": "notify_human",
+    "predicted": "notify_human",
+    "correct": true
+  },
+  {
+    "from": "Project Guide <guide@college.edu>",
+    "subject": "Project Review Meeting",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  },
+  {
+    "from": "Manager <manager@company.com>",
+    "subject": "Approve Budget Proposal",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  },
+  {
+    "from": "Teammate <team@company.com>",
+    "subject": "Schedule Sync Call",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  },
+  {
+    "from": "Faculty <faculty@college.edu>",
+    "subject": "Assignment Submission",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  },
+  {
+    "from": "Internship Cell <intern@college.edu>",
+    "subject": "Confirm Internship Offer",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  },
+  {
+    "from": "Calendar Bot <calendar@company.com>",
+    "subject": "Meeting Reschedule",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  },
+  {
+    "from": "Client <client@business.com>",
+    "subject": "Requirement Clarification",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  },
+  {
+    "from": "Placement Officer <placements@college.edu>",
+    "subject": "Interview Slot Confirmation",
+    "true": "respond_act",
+    "predicted": "notify_human",
+    "correct": false
+  },
+  {
+    "from": "Professor <prof@university.edu>",
+    "subject": "Research Discussion",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  },
+  {
+    "from": "Admin <admin@college.edu>",
+    "subject": "Document Approval Required",
+    "true": "respond_act",
+    "predicted": "respond_act",
+    "correct": true
+  }
+]
