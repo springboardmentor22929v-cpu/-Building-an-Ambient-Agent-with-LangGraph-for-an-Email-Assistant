@@ -15,6 +15,7 @@ You have access to tools that can:
 - Check calendar availability
 - Draft professional email responses
 - Schedule meetings
+- Create tasks for follow-ups
 - Search past emails for context
 
 **CLASSIFICATION RULES:**

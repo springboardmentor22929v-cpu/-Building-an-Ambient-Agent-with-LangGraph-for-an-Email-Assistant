@@ -7,16 +7,18 @@ from googleapiclient.errors import HttpError
 # Global services (will be set when tools are initialized)
 _gmail_service = None
 _calendar_service = None
+_tasks_service = None
 
 
-def initialize_tools(gmail_service, calendar_service):
+def initialize_tools(gmail_service, calendar_service, tasks_service=None):
     """
     Initialize tools with authenticated Google services.
     Call this before using any tools.
     """
-    global _gmail_service, _calendar_service
+    global _gmail_service, _calendar_service, _tasks_service
     _gmail_service = gmail_service
     _calendar_service = calendar_service
+    _tasks_service = tasks_service
     print("✅ Tools initialized with Google services")
 
 
@@ -370,6 +372,44 @@ Best regards"""
         return error_msg
 
 
+@tool
+def create_google_task(
+    title: str,
+    notes: str = "",
+    due: str = None
+) -> str:
+    """
+    Create a new task in Google Tasks.
+    
+    Args:
+        title: The title of the task (e.g., "Follow up with client")
+        notes: Optional notes or details for the task
+        due: Optional due date in RFC 3339 format (e.g., "2025-01-15T12:00:00Z")
+    
+    Returns:
+        Confirmation message with task details
+    """
+    if not _tasks_service:
+        return "Error: Tasks service not initialized."
+    
+    try:
+        task = {
+            'title': title,
+            'notes': notes
+        }
+        if due:
+            task['due'] = due
+            
+        result = _tasks_service.tasks().insert(tasklist='@default', body=task).execute()
+        
+        return f"✅ Task created successfully!\nTitle: {result['title']}\nStatus: {result['status']}"
+        
+    except Exception as e:
+        error_msg = f"Error creating task: {str(e)}"
+        print(f"   ✗ {error_msg}")
+        return error_msg
+
+
 # Tool list for easy import
 def get_google_tools():
     """Returns list of all Google tools"""
@@ -377,5 +417,6 @@ def get_google_tools():
         check_calendar,
         schedule_meeting,
         draft_email_reply,
-        send_email_reply 
+        send_email_reply,
+        create_google_task
     ]

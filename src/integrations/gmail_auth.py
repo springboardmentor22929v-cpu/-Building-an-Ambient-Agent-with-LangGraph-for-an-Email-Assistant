@@ -10,7 +10,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',  # Read emails
     'https://www.googleapis.com/auth/gmail.send',      # Send emails (for later)
     'https://www.googleapis.com/auth/calendar.readonly',  # Read calendar
-    'https://www.googleapis.com/auth/calendar.events'     # Create events
+    'https://www.googleapis.com/auth/calendar.events',     # Create events
+    'https://www.googleapis.com/auth/tasks'               # Manage tasks
 ]
 
 def authenticate_google_services():
@@ -60,14 +61,15 @@ def authenticate_google_services():
     # Build services
     gmail_service = build('gmail', 'v1', credentials=creds)
     calendar_service = build('calendar', 'v3', credentials=creds)
+    tasks_service = build('tasks', 'v1', credentials=creds)
     
-    return gmail_service, calendar_service
+    return gmail_service, calendar_service, tasks_service
 
 
 def test_connection():
-    """Test if Gmail and Calendar connections work"""
+    """Test if Gmail, Calendar, and Tasks connections work"""
     try:
-        gmail, calendar = authenticate_google_services()
+        gmail, calendar, tasks = authenticate_google_services()
         
         # Test Gmail
         profile = gmail.users().getProfile(userId='me').execute()
@@ -78,14 +80,17 @@ def test_connection():
         cal_list = calendar.calendarList().list().execute()
         print(f"\n✅ Calendar Connected!")
         print(f"   Found {len(cal_list.get('items', []))} calendars")
-        for cal in cal_list.get('items', [])[:3]:
-            print(f"      • {cal['summary']}")
         
-        return gmail, calendar
+        # Test Tasks
+        task_lists = tasks.tasklists().list().execute()
+        print(f"\n✅ Tasks Connected!")
+        print(f"   Found {len(task_lists.get('items', []))} task lists")
+        
+        return gmail, calendar, tasks
         
     except Exception as e:
         print(f"\n❌ Connection failed: {e}")
-        return None, None
+        return None, None, None
 
 
 if __name__ == "__main__":
