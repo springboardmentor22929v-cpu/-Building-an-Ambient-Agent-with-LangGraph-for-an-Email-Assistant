@@ -11,9 +11,11 @@ DANGEROUS_TOOLS = [
 
 # Safe tools that run automatically
 SAFE_TOOLS = [
-    "check_calendar",    # Just reads data
+    "read_email",         # Just reads data
+    "check_calendar",     # Just reads data
     "search_past_emails", # Just reads data
-    "draft_email_reply"  # Just creates draft, doesn't send
+    "draft_email_reply",  # Just creates draft, doesn't send
+    "create_google_task"  # Creates a task, low risk
 ]
 
 
