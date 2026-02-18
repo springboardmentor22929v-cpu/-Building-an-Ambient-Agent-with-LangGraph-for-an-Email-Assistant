@@ -22,3 +22,4 @@ test_inputs
 .ipynb_checkpoints
 inbox_env
 
+agent_memory.db

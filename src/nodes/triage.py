@@ -8,7 +8,9 @@ llm = ChatGoogleGenerativeAI(
     convert_system_message_to_human=True
 )
 
-triage_template = """You are an expert email triage assistant for Lance Martin, a technical professional.
+triage_template = """You are an expert email triage assistant.
+
+{memory_context}
 
 **YOUR CAPABILITIES:**
 You have access to tools that can:
@@ -84,6 +86,7 @@ Classify this email into exactly ONE category:
 - Use "ignore" ONLY for generic spam and unimportant automated notifications
 - Remember: Expressing interest ≠ Making final decision
 - Being helpful by drafting acknowledgment emails is your job!
+- If memory context shows a triage override or pattern, FOLLOW IT
 
 **EMAIL TO CLASSIFY:**
 
@@ -95,9 +98,10 @@ Body: {email_body}
 **YOUR CLASSIFICATION:**
 
 Think step by step:
-1. Is this just spam/generic newsletter with no importance? → If YES, classify as "ignore"
-2. Is this a critical alert, deadline, important FYI, or GitHub notification? → If YES, classify as "notify_human"
-3. Can I help by drafting an acknowledgment, interest, or response? → If YES, classify as "respond"
+1. Check memory context for triage override or strong patterns
+2. Is this just spam/generic newsletter with no importance? → If YES, classify as "ignore"
+3. Is this a critical alert, deadline, important FYI, or GitHub notification? → If YES, classify as "notify_human"
+4. Can I help by drafting an acknowledgment, interest, or response? → If YES, classify as "respond"
 
 Respond in this EXACT format:
 DECISION: [ignore/notify_human/respond]
@@ -105,21 +109,70 @@ REASONING: [One sentence explaining why, referencing the guidelines above]"""
 
 triage_prompt = PromptTemplate(
     template=triage_template,
-    input_variables=["email_from", "email_to", "email_subject", "email_body"]
+    input_variables=["email_from", "email_to", "email_subject", "email_body", "memory_context"]
 )
 
 def triage_node(state: EmailAgentState) -> EmailAgentState:
     """
-    Classify email with improved prompt.
+    Classify email with memory-aware prompt.
+    
+    Memory structure from load_memory_node:
+    user_preferences = {
+        "raw": {
+            "preferences": {...},
+            "sender_context": {...},
+            "past_feedback": [...],
+            "triage_corrections": [...]
+        },
+        "summary": "...",
+        "sender_context": {...},
+        "triage_corrections": [...]
+    }
     """
     
+    # ✅ CORRECT: Access memory from user_preferences
+    user_prefs = state.get("user_preferences", {})
+    sender_context = user_prefs.get("sender_context")
+    triage_corrections = user_prefs.get("triage_corrections", [])
+    memory_summary = user_prefs.get("summary", "No memory available")
+    
+    email_from = state.get("email_from", "")
+    
+    # ✅ CHECK FOR TRIAGE OVERRIDE (auto-apply without LLM)
+    if sender_context and sender_context.get("triage_override"):
+        override = sender_context["triage_override"]
+        print(f"  ⚡ TRIAGE OVERRIDE from memory: {override}")
+        print(f"     Sender: {email_from}")
+        return {
+            **state,
+            "triage_decision": override,
+            "triage_reasoning": f"Memory override: sender {email_from} is always classified as '{override}'"
+        }
+    
+    # ✅ BUILD MEMORY CONTEXT for LLM prompt
+    memory_context_parts = []
+    
+    # Add summary
+    if memory_summary and memory_summary != "No memory available":
+        memory_context_parts.append("📋 MEMORY CONTEXT:")
+        memory_context_parts.append(memory_summary)
+    
+    # Build final context string
+    if memory_context_parts:
+        memory_context = "\n".join(memory_context_parts)
+    else:
+        memory_context = "MEMORY CONTEXT: No previous interactions with this sender."
+    
+    # ✅ FORMAT PROMPT with all required variables
     prompt_text = triage_prompt.format(
-        email_from=state.get("email_from", ""),
-        email_to=state.get("email_to", "Lance Martin <lance@company.com>"),
+        email_from=email_from,
+        email_to=state.get("email_to", "lance@company.com"),
         email_subject=state.get("email_subject", ""),
-        email_body=state.get("email_body", "")
+        email_body=state.get("email_body", ""),
+        memory_context=memory_context
     )
     
+    # Invoke LLM
     response = llm.invoke(prompt_text)
     content = response.content
     
@@ -133,13 +186,22 @@ def triage_node(state: EmailAgentState) -> EmailAgentState:
         elif "REASONING:" in line:
             reasoning = line.split(":", 1)[1].strip()
     
+    # Validate decision
     if decision not in ["ignore", "notify_human", "respond"]:
         print(f"⚠️ Invalid decision '{decision}', defaulting to respond")
         decision = "respond"
         reasoning = "Failed to parse, defaulting to respond to be helpful"
     
-    # Only show result (clean output)
-    print(f"📋 {decision.upper()}")
+    # Clean output
+    print(f"📋 TRIAGE: {decision.upper()}")
+    
+    # Show context usage
+    if sender_context:
+        print(f"   📝 Sender known: {sender_context.get('sender_name', 'Unknown')}")
+        print(f"   📊 Past interactions: {sender_context.get('interaction_count', 0)}")
+    
+    if triage_corrections:
+        print(f"   🔄 Past corrections: {len(triage_corrections)} learned")
     
     return {
         **state,
