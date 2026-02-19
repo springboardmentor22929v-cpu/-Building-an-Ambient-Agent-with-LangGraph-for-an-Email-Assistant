@@ -105,65 +105,30 @@ Arguments:"""
             display += f"\n{tool_call['args']}\n"
     return display
 
-def parse_email(email_input: dict) -> dict:
-    """Parse an email input dictionary.
+def parse_email(email_input: dict) -> tuple[str, str, str, str]:
+    """Parse an email input dictionary using safe fallbacks."""
+    
+    author = email_input.get("author", email_input.get("from", "Unknown Sender"))
+    to = email_input.get("to", "Unknown Recipient")
+    subject = email_input.get("subject", "No Subject")
+    email_thread = email_input.get("email_thread", email_input.get("body", ""))
 
-    Args:
-        email_input (dict): Dictionary containing email fields:
-            - author: Sender's name and email
-            - to: Recipient's name and email
-            - subject: Email subject line
-            - email_thread: Full email content
-
-    Returns:
-        tuple[str, str, str, str]: Tuple containing:
-            - author: Sender's name and email
-            - to: Recipient's name and email
-            - subject: Email subject line
-            - email_thread: Full email content
-    """
-    return (
-        email_input["author"],
-        email_input["to"],
-        email_input["subject"],
-        email_input["email_thread"],
-    )
+    return author, to, subject, email_thread
 
 def parse_gmail(email_input: dict) -> tuple[str, str, str, str, str]:
-    """Parse an email input dictionary for Gmail, including the email ID.
-    
-    This function extends parse_email by also returning the email ID,
-    which is used specifically in the Gmail integration.
-
-    Args:
-        email_input (dict): Dictionary containing email fields in any of these formats:
-            Gmail schema:
-                - From: Sender's email
-                - To: Recipient's email
-                - Subject: Email subject line
-                - Body: Full email content
-                - Id: Gmail message ID
-            
-    Returns:
-        tuple[str, str, str, str, str]: Tuple containing:
-            - author: Sender's name and email
-            - to: Recipient's name and email
-            - subject: Email subject line
-            - email_thread: Full email content
-            - email_id: Email ID (or None if not available)
-    """
+    """Parse an email input dictionary for Gmail, safely handling missing keys."""
 
     print("!Email_input from Gmail!")
     print(email_input)
 
-    # Gmail schema
-    return (
-        email_input["from"],
-        email_input["to"],
-        email_input["subject"],
-        email_input["body"],
-        email_input["id"],
-    )
+    # Bulletproof parsing: checking for multiple potential keys
+    sender = email_input.get("from", email_input.get("author", "Unknown Sender"))
+    to = email_input.get("to", "Unknown Recipient")
+    subject = email_input.get("subject", "No Subject")
+    body = email_input.get("body", email_input.get("email_thread", ""))
+    email_id = email_input.get("id", "Unknown ID")
+
+    return sender, to, subject, body, email_id
     
 def extract_message_content(message) -> str:
     """Extract content from different message types as clean string.
@@ -197,21 +162,7 @@ def extract_message_content(message) -> str:
     return str(content)
 
 def format_few_shot_examples(examples):
-    """Format examples into a readable string representation.
-
-    Args:
-        examples (List[Item]): List of example items from the vector store, where each item
-            contains a value string with the format:
-            'Email: {...} Original routing: {...} Correct routing: {...}'
-
-    Returns:
-        str: A formatted string containing all examples, with each example formatted as:
-            Example:
-            Email: {email_details}
-            Original Classification: {original_routing}
-            Correct Classification: {correct_routing}
-            ---
-    """
+    """Format examples into a readable string representation."""
     formatted = []
     for example in examples:
         # Parse the example value string into components

@@ -1,161 +1,154 @@
+import time
 from typing import Literal
+from datetime import datetime
+from pydantic import BaseModel, Field
 
-from langchain.chat_models import init_chat_model
+# Import specific Google error handling
+from google.api_core.exceptions import ResourceExhausted
 
-from email_assistant.tools import get_tools, get_tools_by_name
-from email_assistant.tools.default.prompt_templates import AGENT_TOOLS_PROMPT
-from email_assistant.prompts import triage_system_prompt, triage_user_prompt, agent_system_prompt, default_background, default_triage_instructions, default_response_preferences, default_cal_preferences
-from email_assistant.schemas import State, RouterSchema, StateInput
-from email_assistant.utils import parse_email, format_email_markdown
-
-from langgraph.graph import StateGraph, START, END
+from langchain_core.tools import tool
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.graph import MessagesState, START, END, StateGraph
 from langgraph.types import Command
-from dotenv import load_dotenv
-load_dotenv(".env")
 
-# Get tools
-tools = get_tools()
-tools_by_name = get_tools_by_name(tools)
+from email_assistant.utils import parse_email, format_email_markdown
+from email_assistant.prompts import (
+    triage_system_prompt,
+    triage_user_prompt,
+    default_triage_instructions,
+    default_background,
+    agent_system_prompt,
+    default_response_preferences,
+    default_cal_preferences,
+)
+from email_assistant.tools.default.prompt_templates import AGENT_TOOLS_PROMPT
 
-# Initialize the LLM for use with router / structured output
-llm = init_chat_model("openai:gpt-4.1", temperature=0.0)
-llm_router = llm.with_structured_output(RouterSchema) 
+# --- HELPER: The Bulletproof Retry Function ---
+def safe_invoke(llm, input_data):
+    """
+    Invokes the LLM. If it hits a Rate Limit (429), it waits 60s and tries again.
+    It will keep trying forever until it succeeds.
+    """
+    while True:
+        try:
+            return llm.invoke(input_data)
+        except Exception as e:
+            # Check if the error string contains "429" or "Resource"
+            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                print(f" >>> HIT RATE LIMIT. Sleeping 60 seconds before retrying...")
+                time.sleep(60)
+            else:
+                # If it's a different error (like code error), raise it
+                raise e
 
-# Initialize the LLM, enforcing tool use (of any available tools) for agent
-llm = init_chat_model("openai:gpt-4.1", temperature=0.0)
-llm_with_tools = llm.bind_tools(tools, tool_choice="any")
+# --- 1. Define Tools (Now with Docstrings!) ---
+@tool
+def write_email(to: str, subject: str, content: str) -> str:
+    """Write and send an email."""
+    return f"Email sent to {to} with subject '{subject}' and content: {content}"
 
-# Nodes
+@tool
+def schedule_meeting(attendees: list, subject: str, duration_minutes: int, preferred_day: datetime, start_time: int):
+    """Schedule a calendar meeting."""
+    date_str = preferred_day.strftime("%A, %B %d, %Y")
+    return f"Meeting '{subject}' scheduled on {date_str}"
+
+@tool
+def check_calendar_availability(day: str) -> str:
+    """Check calendar availability for a given day."""
+    return f"Available times on {day}: 9:00 AM, 2:00 PM"
+
+@tool
+class Done(BaseModel):
+      """Mark the email task as done."""
+      done: bool
+
+# --- 2. Define State ---
+class State(MessagesState):
+    email_input: dict
+    classification_decision: Literal["ignore", "respond", "notify"]
+
+# --- 3. Define Router ---
+class RouterSchema(BaseModel):
+    reasoning: str = Field(description="Reasoning")
+    classification: Literal["ignore", "respond", "notify"] = Field(
+        description="The classification of an email."
+    )
+
+# Using gemini-2.5-flash as it is available to you
+llm_router = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.0).with_structured_output(RouterSchema)
+
+def triage_router(state: State) -> Command[Literal["response_agent", "__end__"]]:
+    author, to, subject, email_thread = parse_email(state["email_input"])
+    system_prompt = triage_system_prompt.format(background=default_background, triage_instructions=default_triage_instructions)
+    user_prompt = triage_user_prompt.format(author=author, to=to, subject=subject, email_thread=email_thread)
+    
+    # !!! USE SAFE INVOKE !!!
+    result = safe_invoke(llm_router, [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ])
+
+    if result.classification == "respond":
+        goto = "response_agent"
+        update = {
+            "messages": [{"role": "user", "content": f"Respond: \n\n{format_email_markdown(subject, author, to, email_thread)}"}],
+            "classification_decision": result.classification,
+        }
+    else:
+        goto = END
+        update = {"classification_decision": result.classification}
+        
+    return Command(goto=goto, update=update)
+
+# --- 4. Response Agent ---
+tools = [write_email, schedule_meeting, check_calendar_availability, Done]
+tools_by_name = {tool.name: tool for tool in tools}
+
+llm_agent = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.0).bind_tools(tools)
+
 def llm_call(state: State):
-    """LLM decides whether to call a tool or not"""
+    # !!! USE SAFE INVOKE !!!
+    response = safe_invoke(llm_agent, 
+        [{"role": "system", "content": agent_system_prompt.format(
+            tools_prompt=AGENT_TOOLS_PROMPT,
+            background=default_background,
+            response_preferences=default_response_preferences,
+            cal_preferences=default_cal_preferences, 
+        )}] + state["messages"]
+    )
+    return {"messages": [response]}
 
-    return {
-        "messages": [
-            llm_with_tools.invoke(
-                [
-                    {"role": "system", "content": agent_system_prompt.format(
-                        tools_prompt=AGENT_TOOLS_PROMPT,
-                        background=default_background,
-                        response_preferences=default_response_preferences, 
-                        cal_preferences=default_cal_preferences)
-                    },
-                    
-                ]
-                + state["messages"]
-            )
-        ]
-    }
-
-def tool_node(state: State):
-    """Performs the tool call"""
-
+def tool_handler(state: State):
     result = []
-    for tool_call in state["messages"][-1].tool_calls:
-        tool = tools_by_name[tool_call["name"]]
-        observation = tool.invoke(tool_call["args"])
-        result.append({"role": "tool", "content" : observation, "tool_call_id": tool_call["id"]})
+    if state["messages"][-1].tool_calls:
+        for tool_call in state["messages"][-1].tool_calls:
+            tool = tools_by_name[tool_call["name"]]
+            observation = tool.invoke(tool_call["args"])
+            result.append({"role": "tool", "content" : str(observation), "tool_call_id": tool_call["id"]})
     return {"messages": result}
 
-# Conditional edge function
-def should_continue(state: State) -> Literal["Action", "__end__"]:
-    """Route to Action, or end if Done tool called"""
-    messages = state["messages"]
-    last_message = messages[-1]
+def should_continue(state: State) -> Literal["tool_handler", "__end__"]:
+    last_message = state["messages"][-1]
     if last_message.tool_calls:
         for tool_call in last_message.tool_calls: 
             if tool_call["name"] == "Done":
                 return END
-            else:
-                return "Action"
+        return "tool_handler"
+    return END
 
-# Build workflow
-agent_builder = StateGraph(State)
+# --- 5. Compile Graph ---
+workflow_agent = StateGraph(State)
+workflow_agent.add_node("llm_call", llm_call)
+workflow_agent.add_node("tool_handler", tool_handler)
+workflow_agent.add_edge(START, "llm_call")
+workflow_agent.add_conditional_edges("llm_call", should_continue, {"tool_handler": "tool_handler", END: END})
+workflow_agent.add_edge("tool_handler", "llm_call")
+agent = workflow_agent.compile()
 
-# Add nodes
-agent_builder.add_node("llm_call", llm_call)
-agent_builder.add_node("environment", tool_node)
-
-# Add edges to connect nodes
-agent_builder.add_edge(START, "llm_call")
-agent_builder.add_conditional_edges(
-    "llm_call",
-    should_continue,
-    {
-        # Name returned by should_continue : Name of next node to visit
-        "Action": "environment",
-        END: END,
-    },
-)
-agent_builder.add_edge("environment", "llm_call")
-
-# Compile the agent
-agent = agent_builder.compile()
-
-def triage_router(state: State) -> Command[Literal["response_agent", "__end__"]]:
-    """Analyze email content to decide if we should respond, notify, or ignore.
-
-    The triage step prevents the assistant from wasting time on:
-    - Marketing emails and spam
-    - Company-wide announcements
-    - Messages meant for other teams
-    """
-    author, to, subject, email_thread = parse_email(state["email_input"])
-    system_prompt = triage_system_prompt.format(
-        background=default_background,
-        triage_instructions=default_triage_instructions
-    )
-
-    user_prompt = triage_user_prompt.format(
-        author=author, to=to, subject=subject, email_thread=email_thread
-    )
-
-    # Create email markdown for Agent Inbox in case of notification  
-    email_markdown = format_email_markdown(subject, author, to, email_thread)
-
-    # Run the router LLM
-    result = llm_router.invoke(
-        [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ]
-    )
-
-    # Decision
-    classification = result.classification
-
-    if classification == "respond":
-        print("📧 Classification: RESPOND - This email requires a response")
-        goto = "response_agent"
-        # Add the email to the messages
-        update = {
-            "classification_decision": result.classification,
-            "messages": [{"role": "user",
-                            "content": f"Respond to the email: {email_markdown}"
-                        }],
-        }
-    elif result.classification == "ignore":
-        print("🚫 Classification: IGNORE - This email can be safely ignored")
-        update =  {
-            "classification_decision": result.classification,
-        }
-        goto = END
-    elif result.classification == "notify":
-        # If real life, this would do something else
-        print("🔔 Classification: NOTIFY - This email contains important information")
-        update = {
-            "classification_decision": result.classification,
-        }
-        goto = END
-    else:
-        raise ValueError(f"Invalid classification: {result.classification}")
-    return Command(goto=goto, update=update)
-
-# Build workflow
-overall_workflow = (
-    StateGraph(State, input=StateInput)
+email_assistant = (
+    StateGraph(State)
     .add_node(triage_router)
     .add_node("response_agent", agent)
     .add_edge(START, "triage_router")
-)
-
-email_assistant = overall_workflow.compile()
+).compile()
