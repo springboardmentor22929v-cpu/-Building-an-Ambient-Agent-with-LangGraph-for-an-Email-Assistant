@@ -106,6 +106,18 @@ def load_memory_node(state: EmailAgentState) -> EmailAgentState:
     
     # Print summary
     print(f"  ✓ Loaded {len(preferences)} preferences")
+    if preferences:
+        # Show key learned patterns
+        for key in ['tone', 'length', 'formality']:
+            if key in preferences:
+                print(f"    - {key}: {preferences[key]}")
+        if preferences.get('avoid_words'):
+            avoid_count = len(preferences['avoid_words']) if isinstance(preferences['avoid_words'], list) else 0
+            print(f"    - avoid_words: {avoid_count} words")
+        if preferences.get('prefer_words'):
+            prefer_count = len(preferences['prefer_words']) if isinstance(preferences['prefer_words'], list) else 0
+            print(f"    - prefer_words: {prefer_count} words")
+    
     print(f"  ✓ Sender known: {sender_context is not None}")
     if sender_context:
         print(f"    - Name: {sender_context.get('sender_name', 'Unknown')}")
@@ -115,14 +127,15 @@ def load_memory_node(state: EmailAgentState) -> EmailAgentState:
     print(f"  ✓ Past feedback: {len(past_feedback)} records")
     print(f"  ✓ Triage corrections: {len(triage_corrections)} records")
     
-    # ✅ Return structure that triage expects
+    # ✅ Return structure that both triage and react_agent expect
     return {
         **state,
         "user_preferences": {
-            "raw": context,                          # Full raw data
+            "raw": context,                          # Full raw data (for react_agent)
             "summary": final_memory,                 # Formatted text for LLM
             "sender_context": sender_context,        # Direct access
-            "triage_corrections": triage_corrections # Direct access
+            "triage_corrections": triage_corrections, # Direct access
+            "preferences": preferences                # Direct access (for react_agent)
         }
     }
 
@@ -130,13 +143,13 @@ def load_memory_node(state: EmailAgentState) -> EmailAgentState:
 def update_memory_node(state: EmailAgentState) -> EmailAgentState:
     """
     Update memory after processing email.
-    ✅ UPDATED to use new AgentMemory methods
+    ✅ UPDATED to use new AgentMemory methods with pattern extraction
     """
     print("\n💾 UPDATE MEMORY: Saving interaction and feedback")
     
     if not _memory:
         print("   ⚠️  Memory not initialized")
-        return state
+        return {**state, "memory_saved": False}
     
     # 1. Always save email interaction to history
     pending = state.get("pending_action", {})
@@ -152,7 +165,7 @@ def update_memory_node(state: EmailAgentState) -> EmailAgentState:
     )
     print(f"  ✓ Email interaction saved")
     
-    # 2. Save feedback if human edited draft
+    # 2. ✅ SAVE FEEDBACK WITH PATTERN EXTRACTION
     if human_decision == "edit" and state.get("human_feedback"):
         original_draft = ""
         edited_draft = ""
@@ -162,6 +175,9 @@ def update_memory_node(state: EmailAgentState) -> EmailAgentState:
         messages = state.get("messages", [])
         if messages and isinstance(messages[0], dict):
             original_draft = messages[0].get("content", "")
+            # Extract just the body (remove To: and Subject: lines)
+            if "\n\n" in original_draft:
+                original_draft = original_draft.split("\n\n", 1)[1]
         
         # Get edited version from human_feedback
         feedback = state.get("human_feedback", {})
@@ -171,8 +187,10 @@ def update_memory_node(state: EmailAgentState) -> EmailAgentState:
         elif isinstance(feedback, str):
             edited_draft = feedback
         
-        if original_draft and edited_draft:
-            # ✅ Use new save_feedback signature
+        if original_draft and edited_draft and original_draft != edited_draft:
+            print(f"  🔍 Analyzing edit patterns...")
+            
+            # ✅ THIS IS THE KEY FIX - save_feedback now extracts patterns
             _memory.save_feedback(
                 email_id=state.get("email_id", "unknown"),
                 email_from=state.get("email_from", ""),
@@ -182,14 +200,16 @@ def update_memory_node(state: EmailAgentState) -> EmailAgentState:
                 feedback_note=feedback_note,
                 action="edit"
             )
-            print("  ✓ Saved edit feedback")
+            print("  ✓ Saved feedback with pattern extraction")
             
             # ✅ Update sender context with note
             _memory.save_sender_context(
                 sender_email=state.get("email_from", ""),
-                notes=f"User edited response: '{state.get('email_subject', 'N/A')}'"
+                notes=f"User edited response: '{state.get('email_subject', 'N/A')}' - {feedback_note if feedback_note else 'no note'}"
             )
             print("  ✓ Updated sender context")
+        else:
+            print("  ⚠️  No valid edit to analyze (drafts are identical or missing)")
     
     # 3. Save triage corrections if applicable
     if state.get("triage_corrected"):

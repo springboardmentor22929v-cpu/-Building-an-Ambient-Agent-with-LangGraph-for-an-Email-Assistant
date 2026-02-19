@@ -43,6 +43,11 @@ async def startup_event():
     print("\n🚀 Starting Email Agent HITL Server...")
     
     try:
+        # ✅ Initialize memory system FIRST
+        from src.nodes.memory import initialize_memory
+        initialize_memory(db_path="agent_memory.db")
+        print("✅ Memory initialized")
+        
         gmail_service, calendar_service = authenticate_google_services()
         initialize_tools(gmail_service, calendar_service)
         agent = create_email_agent()
@@ -139,11 +144,14 @@ async def process_email(request: Request):
     
     workflow_id = str(uuid.uuid4())[:8]
     
+    # ✅ Initialize state with empty lists (not None)
     email_data = {
         "email_id": workflow_id,
         "email_from": body.get("email_from", ""),
+        "email_to": body.get("email_to", "you@company.com"),  # ✅ Add email_to
         "email_subject": body.get("email_subject", ""),
         "email_body": body.get("email_body", ""),
+        "messages": [],
         "user_preferences": {},
         "workflow_id": workflow_id
     }
@@ -174,7 +182,7 @@ async def process_email(request: Request):
 async def run_agent_workflow(workflow_id: str, email_data: dict):
     """
     Run the agent workflow asynchronously.
-    Handles HITL pause/resume.
+    Handles HITL pause/resume and notify_human.
     """
     try:
         config = {
@@ -183,32 +191,130 @@ async def run_agent_workflow(workflow_id: str, email_data: dict):
             }
         }
         
-        # Phase 1: Run until HITL checkpoint
+        # Phase 1: Run until HITL checkpoint or triage decision
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(
             None,
             lambda: agent.invoke(email_data, config)
         )
         
+        # Get triage decision
+        triage_decision = result.get("triage_decision", "")
+        triage_reasoning = result.get("triage_reasoning", "")
+        
+        print("\n🔍 DEBUG:")
+        print(f"   triage_decision: {triage_decision}")
+        print(f"   requires_approval: {result.get('requires_approval')}")
+        
         # Notify triage result
         await broadcast_message({
             "type": "triage_complete",
             "workflow_id": workflow_id,
-            "decision": result.get("triage_decision", ""),
-            "reasoning": result.get("triage_reasoning", "")
+            "decision": triage_decision,
+            "reasoning": triage_reasoning
         })
         
-        # Check if HITL needed
+        # ✅ Handle notify_human - show notification with options
+        if triage_decision == "notify_human":
+            print(f"\n🔔 NOTIFY_HUMAN: Showing notification with options")
+            
+            # Create notification approval
+            approval_data = {
+                "workflow_id": workflow_id,
+                "action_type": "notify_human",
+                "recipient": email_data["email_from"],
+                "subject": email_data["email_subject"],
+                "body": email_data["email_body"],
+                "draft_preview": f"📧 **Notification Email**\n\nFrom: {email_data['email_from']}\nSubject: {email_data['email_subject']}\n\n{email_data['email_body'][:500]}...",
+                "timestamp": datetime.now().isoformat(),
+                "notification_type": True  # ✅ Flag for UI to show respond/ignore
+            }
+            
+            # Store and broadcast
+            pending_approvals[workflow_id] = approval_data
+            approval_events[workflow_id] = asyncio.Event()
+            
+            await broadcast_message({
+                "type": "approval_required",
+                "data": approval_data
+            })
+            
+            print(f"   ⏸️  Waiting for human decision (respond or ignore)")
+            
+            # Wait for human decision
+            try:
+                await asyncio.wait_for(
+                    approval_events[workflow_id].wait(),
+                    timeout=600
+                )
+            except asyncio.TimeoutError:
+                print(f"   ⏰ Timed out")
+                await broadcast_message({
+                    "type": "workflow_timeout",
+                    "workflow_id": workflow_id
+                })
+                return
+            
+            # Get decision
+            decision_data = approval_decisions.get(workflow_id, {})
+            decision = decision_data.get("decision", "ignore")
+            
+            print(f"\n   👤 Human chose: {decision}")
+            
+            if decision == "ignore":
+                # Update memory: Save that this type of email should be ignored
+                print(f"   💾 Updating memory: User ignored this notification")
+                
+                # Notify completion
+                await broadcast_message({
+                    "type": "workflow_complete",
+                    "workflow_id": workflow_id,
+                    "decision": "ignored",
+                    "execution_status": "complete"
+                })
+                
+                # ✅ Save to memory that email was denied/ignored
+                from src.nodes.memory import get_memory
+                memory = get_memory()
+                if memory:
+                    memory.save_email_interaction(
+                        email_id=workflow_id,
+                        email_from=email_data["email_from"],
+                        email_subject=email_data["email_subject"],
+                        triage_decision="notify_human",
+                        action_taken="none",
+                        human_approved=False  # ✅ This is the deny!
+                    )
+                
+                return
+            
+            elif decision == "respond":
+                # User wants to respond - continue workflow
+                print(f"   ▶️  Continuing to draft response...")
+                
+                # Update state to trigger respond flow
+                email_data["triage_decision"] = "respond"
+                
+                # Re-invoke agent to get draft
+                result = await loop.run_in_executor(
+                    None,
+                    lambda: agent.invoke(email_data, config)
+                )
+        
+        # ✅ Handle respond - show draft for approval
         if result.get("requires_approval"):
             pending_action = result.get("pending_action", {})
             args = pending_action.get("args", {})
             
             # Get draft preview
+            messages = result.get('messages', [])
             draft_preview = ""
-            if result.get("messages"):
-                msg = result["messages"][0]
+            if messages and len(messages) > 0:
+                msg = messages[0]
                 if isinstance(msg, dict):
                     draft_preview = msg.get("content", "")
+                else:
+                    draft_preview = str(msg)
             
             approval_data = {
                 "workflow_id": workflow_id,
@@ -217,16 +323,14 @@ async def run_agent_workflow(workflow_id: str, email_data: dict):
                 "subject": args.get("subject", ""),
                 "body": args.get("body", ""),
                 "draft_preview": draft_preview,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
+                "notification_type": False  # ✅ Regular approval
             }
             
             # Store and broadcast
             pending_approvals[workflow_id] = approval_data
-            
-            # Create event for waiting
             approval_events[workflow_id] = asyncio.Event()
             
-            # Send to UI
             await broadcast_message({
                 "type": "approval_required",
                 "data": approval_data
@@ -234,7 +338,7 @@ async def run_agent_workflow(workflow_id: str, email_data: dict):
             
             print(f"\n⏸️  Workflow {workflow_id} paused for approval")
             
-            # Wait for human decision (timeout after 10 minutes)
+            # Wait for human decision
             try:
                 await asyncio.wait_for(
                     approval_events[workflow_id].wait(),
@@ -256,7 +360,31 @@ async def run_agent_workflow(workflow_id: str, email_data: dict):
             print(f"\n▶️  Resuming workflow {workflow_id}")
             print(f"   Decision: {decision}")
             
-            # Update state
+            # ✅ Handle deny - save to memory
+            if decision == "deny":
+                print(f"   🚫 User denied - saving to memory")
+                
+                from src.nodes.memory import get_memory
+                memory = get_memory()
+                if memory:
+                    memory.save_email_interaction(
+                        email_id=workflow_id,
+                        email_from=email_data["email_from"],
+                        email_subject=email_data["email_subject"],
+                        triage_decision=result.get("triage_decision", "respond"),
+                        action_taken="none",
+                        human_approved=False  # ✅ Denied!
+                    )
+                
+                await broadcast_message({
+                    "type": "workflow_complete",
+                    "workflow_id": workflow_id,
+                    "decision": "denied",
+                    "execution_status": "cancelled"
+                })
+                return
+            
+            # Update state with decision
             updated_state = {
                 **result,
                 "human_decision": decision
@@ -284,7 +412,7 @@ async def run_agent_workflow(workflow_id: str, email_data: dict):
             })
             
         else:
-            # No approval needed
+            # No approval needed (auto-processed)
             await broadcast_message({
                 "type": "workflow_complete",
                 "workflow_id": workflow_id,
@@ -323,4 +451,39 @@ async def health_check():
         "calendar_connected": calendar_service is not None,
         "pending_approvals": len(pending_approvals),
         "connected_clients": len(websocket_connections)
+    }
+
+
+@app.get("/stats")
+async def get_stats():
+    """Get memory statistics including deny counts."""
+    from src.nodes.memory import get_memory
+    
+    memory = get_memory()
+    if not memory:
+        return {"error": "Memory not initialized"}
+    
+    stats = memory.get_stats()
+    
+    # ✅ Calculate deny count
+    cursor = memory.conn.execute("""
+        SELECT COUNT(*) 
+        FROM email_history 
+        WHERE human_approved = 0 AND action_taken != 'none'
+    """)
+    deny_count = cursor.fetchone()[0]
+    
+    # Calculate approve count
+    cursor = memory.conn.execute("""
+        SELECT COUNT(*) 
+        FROM email_history 
+        WHERE human_approved = 1
+    """)
+    approve_count = cursor.fetchone()[0]
+    
+    return {
+        **stats,
+        "deny_count": deny_count,
+        "approve_count": approve_count,
+        "pending_count": len(pending_approvals)
     }

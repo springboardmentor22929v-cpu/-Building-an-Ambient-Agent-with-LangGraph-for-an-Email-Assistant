@@ -431,8 +431,6 @@
             document.getElementById('connection-status').textContent = '⚡ Disconnected';
             document.getElementById('connection-status').className = 'status-badge status-disconnected';
             addActivity('Disconnected from server', 'error');
-            
-            // Reconnect after 3 seconds
             setTimeout(connectWebSocket, 3000);
         };
         
@@ -503,10 +501,18 @@
         pendingCount++;
         updatePendingCount();
         
-        addActivity(
-            `⚠️ Approval required for: "${data.subject}"`,
-            'warning'
-        );
+        // Add activity with appropriate icon
+        if (data.notification_type) {
+            addActivity(
+                `🔔 Notify: "${data.subject}" requires attention (click Respond to type your reply)`,
+                'warning'
+            );
+        } else {
+            addActivity(
+                `⚠️ Approval required for: "${data.subject}"`,
+                'warning'
+            );
+        }
         
         // Remove empty state
         document.getElementById('empty-approvals').style.display = 'none';
@@ -537,7 +543,7 @@
         
         if (decision === 'approve' || decision === 'edit') {
             stats.approved++;
-        } else if (decision === 'deny') {
+        } else if (decision === 'deny' || decision === 'ignored') {
             stats.denied++;
         }
         
@@ -561,45 +567,130 @@
         card.id = `approval-${data.workflow_id}`;
         
         const time = new Date(data.timestamp).toLocaleTimeString();
+        const isNotification = data.notification_type === true;
         
-        card.innerHTML = `
-            <div class="approval-header">
-                <div>
-                    <span class="approval-badge">⚠️ ${data.action_type}</span>
-                    <span style="font-size: 12px; color: #666; margin-left: 8px;">${time}</span>
+        // For notifications, we'll show a special layout with a "Respond" button that opens a text area
+        if (isNotification) {
+            card.innerHTML = `
+                <div class="approval-header">
+                    <div>
+                        <span class="approval-badge">🔔 Notification</span>
+                        <span style="font-size: 12px; color: #666; margin-left: 8px;">${time}</span>
+                    </div>
+                    <span style="font-size: 12px; color: #888;">#${data.workflow_id}</span>
                 </div>
-                <span style="font-size: 12px; color: #888;">#${data.workflow_id}</span>
-            </div>
-            
-            <div style="font-size: 13px; margin: 8px 0;">
-                <strong>To:</strong> ${data.recipient}<br>
-                <strong>Subject:</strong> ${data.subject}
-            </div>
-            
-            <div class="email-preview">${data.draft_preview || 'No preview available'}</div>
-            
-            <div class="approval-buttons">
-                <button class="btn btn-success" onclick="submitDecision('${data.workflow_id}', 'approve')">
-                    ✓ Approve
-                </button>
-                <button class="btn btn-danger" onclick="submitDecision('${data.workflow_id}', 'deny')">
-                    ✗ Deny
-                </button>
-                <button class="btn btn-warning" onclick="toggleEdit('${data.workflow_id}')">
-                    ✏️ Edit
-                </button>
-            </div>
-            
-            <div class="edit-section" id="edit-${data.workflow_id}">
-                <label style="margin-top: 10px;">Edit email content:</label>
-                <textarea id="edit-content-${data.workflow_id}" rows="4">${data.body}</textarea>
-                <button class="btn btn-primary" onclick="submitDecision('${data.workflow_id}', 'edit')" style="margin-top: 8px;">
-                    ✓ Submit Edit
-                </button>
-            </div>
-        `;
+                
+                <div style="font-size: 13px; margin: 8px 0;">
+                    <strong>From:</strong> ${data.recipient}<br>
+                    <strong>Subject:</strong> ${data.subject}
+                </div>
+                
+                <div class="email-preview">${data.draft_preview}</div>
+                
+                <div id="notification-buttons-${data.workflow_id}" class="approval-buttons">
+                    <button class="btn btn-success" onclick="showResponseInput('${data.workflow_id}')">
+                        ✍️ Respond
+                    </button>
+                    <button class="btn btn-secondary" onclick="submitDecision('${data.workflow_id}', 'ignore')">
+                        📦 Ignore
+                    </button>
+                </div>
+                
+                <div id="response-input-${data.workflow_id}" style="display: none; margin-top: 15px;">
+                    <label style="font-weight: bold;">Type your response:</label>
+                    <textarea id="response-text-${data.workflow_id}" rows="5" style="width: 100%; padding: 8px; margin: 8px 0;"></textarea>
+                    <button class="btn btn-primary" onclick="submitCustomResponse('${data.workflow_id}')">
+                        📤 Submit Response for Approval
+                    </button>
+                    <button class="btn btn-secondary" onclick="cancelResponse('${data.workflow_id}')">
+                        Cancel
+                    </button>
+                </div>
+            `;
+        } else {
+            // Regular approval card (with Approve/Deny/Edit)
+            card.innerHTML = `
+                <div class="approval-header">
+                    <div>
+                        <span class="approval-badge">⚠️ ${data.action_type}</span>
+                        <span style="font-size: 12px; color: #666; margin-left: 8px;">${time}</span>
+                    </div>
+                    <span style="font-size: 12px; color: #888;">#${data.workflow_id}</span>
+                </div>
+                
+                <div style="font-size: 13px; margin: 8px 0;">
+                    <strong>To:</strong> ${data.recipient}<br>
+                    <strong>Subject:</strong> ${data.subject}
+                </div>
+                
+                <div class="email-preview">${data.draft_preview}</div>
+                
+                <div class="approval-buttons">
+                    <button class="btn btn-success" onclick="submitDecision('${data.workflow_id}', 'approve')">
+                        ✓ Approve
+                    </button>
+                    <button class="btn btn-danger" onclick="submitDecision('${data.workflow_id}', 'deny')">
+                        ✗ Deny
+                    </button>
+                    <button class="btn btn-warning" onclick="toggleEdit('${data.workflow_id}')">
+                        ✏️ Edit
+                    </button>
+                </div>
+                
+                <div class="edit-section" id="edit-${data.workflow_id}">
+                    <label style="margin-top: 10px;">Edit email content:</label>
+                    <textarea id="edit-content-${data.workflow_id}" rows="4">${data.body || ''}</textarea>
+                    <button class="btn btn-primary" onclick="submitDecision('${data.workflow_id}', 'edit')" style="margin-top: 8px;">
+                        ✓ Submit Edit
+                    </button>
+                </div>
+            `;
+        }
         
         return card;
+    }
+    
+    // Functions for notification response
+    function showResponseInput(workflowId) {
+        document.getElementById(`notification-buttons-${workflowId}`).style.display = 'none';
+        document.getElementById(`response-input-${workflowId}`).style.display = 'block';
+    }
+    
+    function cancelResponse(workflowId) {
+        document.getElementById(`response-input-${workflowId}`).style.display = 'none';
+        document.getElementById(`notification-buttons-${workflowId}`).style.display = 'flex';
+    }
+    
+    function submitCustomResponse(workflowId) {
+        const typedResponse = document.getElementById(`response-text-${workflowId}`).value.trim();
+        if (!typedResponse) {
+            alert('Please type a response.');
+            return;
+        }
+        
+        // Send the typed response as an "respond" decision with edited_content
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'human_decision',
+                workflow_id: workflowId,
+                decision: 'respond',      // will be interpreted as custom response because edited_content is provided
+                edited_content: typedResponse
+            }));
+            
+            addActivity(`Custom response submitted for workflow #${workflowId}`, 'info');
+            
+            // Remove this notification card immediately (the backend will create a new approval card for the draft)
+            const card = document.getElementById(`approval-${workflowId}`);
+            if (card) card.remove();
+            
+            pendingCount = Math.max(0, pendingCount - 1);
+            updatePendingCount();
+            if (pendingCount === 0) {
+                document.getElementById('empty-approvals').style.display = 'block';
+            }
+        } else {
+            addActivity('WebSocket not connected!', 'error');
+        }
     }
     
     function toggleEdit(workflowId) {
@@ -624,7 +715,7 @@
             
             addActivity(
                 `Decision sent: ${decision} for workflow #${workflowId}`,
-                decision === 'deny' ? 'warning' : 'success'
+                (decision === 'deny' || decision === 'ignore') ? 'warning' : 'success'
             );
         } else {
             addActivity('WebSocket not connected!', 'error');
@@ -721,8 +812,6 @@
     
     // ===== INIT =====
     connectWebSocket();
-    
-    // Fetch health every 30 seconds
     setInterval(fetchHealth, 30000);
 </script>
 

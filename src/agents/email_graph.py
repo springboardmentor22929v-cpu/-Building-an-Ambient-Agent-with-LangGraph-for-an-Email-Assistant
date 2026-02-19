@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from src.agents.state import EmailAgentState
-from nodes.memory import load_memory_node, update_memory_node
+from src.nodes.memory import load_memory_node, update_memory_node
 from src.nodes.triage import triage_node
 from src.nodes.react_agent import react_agent_node
 from src.nodes.hitl import hitl_checkpoint_node, should_continue_after_hitl
@@ -84,7 +84,6 @@ def create_email_agent():
     checkpointer = MemorySaver()
     app = workflow.compile(
         checkpointer=checkpointer,
-        interrupt_before=["hitl_checkpoint"]  # Pause BEFORE hitl runs
     )
     
     return app

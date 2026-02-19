@@ -166,7 +166,7 @@ def triage_node(state: EmailAgentState) -> EmailAgentState:
     # ✅ FORMAT PROMPT with all required variables
     prompt_text = triage_prompt.format(
         email_from=email_from,
-        email_to=state.get("email_to", "lance@company.com"),
+        email_to=state.get("email_to", "Karan@company.com"),
         email_subject=state.get("email_subject", ""),
         email_body=state.get("email_body", ""),
         memory_context=memory_context
