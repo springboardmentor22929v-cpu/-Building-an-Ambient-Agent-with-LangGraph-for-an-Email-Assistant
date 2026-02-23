@@ -1,1 +1,13 @@
 .DS_Store
+.env
+token.json
+credentials.json
+venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite
+latest_email.json
+triage_result.json
+.langgraph_api/
+api

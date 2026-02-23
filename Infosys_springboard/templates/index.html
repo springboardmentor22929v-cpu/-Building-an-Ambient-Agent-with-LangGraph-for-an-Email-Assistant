@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Agent — Ambient Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ─── Reset & Base ─── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-glass: rgba(26, 26, 46, 0.7);
+            --border: rgba(255, 255, 255, 0.06);
+            --text-primary: #e8e8f0;
+            --text-secondary: #8b8ba3;
+            --text-muted: #55556a;
+            --accent-blue: #4f6eff;
+            --accent-green: #00d68f;
+            --accent-yellow: #f0b429;
+            --accent-red: #ff5e5e;
+            --accent-purple: #9b6dff;
+            --accent-cyan: #00d4ff;
+            --glow-blue: 0 0 20px rgba(79, 110, 255, 0.3);
+            --glow-green: 0 0 20px rgba(0, 214, 143, 0.3);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ─── Background Effect ─── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(79, 110, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(155, 109, 255, 0.05) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ─── Layout ─── */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ─── Top Bar ─── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 28px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-brand .icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: var(--glow-blue);
+        }
+
+        .topbar-brand h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #b8b8d0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .topbar-brand .subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ─── Buttons ─── */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), #6e5eff);
+            color: #fff;
+            box-shadow: var(--glow-blue);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 25px rgba(79, 110, 255, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-green), #00b87a);
+            color: #fff;
+            box-shadow: var(--glow-green);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-red), #e04545);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--accent-yellow), #e0a020);
+            color: #1a1a2e;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 12px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ─── Main Grid ─── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* ─── Cards ─── */
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ─── Email Input Form ─── */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(79, 110, 255, 0.12);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* ─── Workflow Timeline ─── */
+        .workflow-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 0;
+            position: relative;
+            animation: stepIn 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes stepIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .step-indicator {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-indicator.completed {
+            background: var(--accent-green);
+            color: #fff;
+            box-shadow: var(--glow-green);
+        }
+
+        .step-indicator.running {
+            background: var(--accent-blue);
+            color: #fff;
+            animation: pulse 1.5s infinite;
+            box-shadow: var(--glow-blue);
+        }
+
+        .step-indicator.waiting {
+            background: var(--accent-yellow);
+            color: #1a1a2e;
+            animation: pulse 2s infinite;
+        }
+
+        .step-indicator.error {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Connecting line between steps */
+        .workflow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 17px;
+            top: 50px;
+            bottom: -14px;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--accent-blue), transparent);
+            z-index: 1;
+        }
+
+        .step-content {
+            flex: 1;
+            padding-top: 4px;
+        }
+
+        .step-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .step-detail {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ─── Decision Badge ─── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-respond {
+            background: rgba(79, 110, 255, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid rgba(79, 110, 255, 0.3);
+        }
+
+        .badge-notify {
+            background: rgba(240, 180, 41, 0.15);
+            color: var(--accent-yellow);
+            border: 1px solid rgba(240, 180, 41, 0.3);
+        }
+
+        .badge-ignore {
+            background: rgba(255, 94, 94, 0.15);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 94, 94, 0.3);
+        }
+
+        .badge-success {
+            background: rgba(0, 214, 143, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(0, 214, 143, 0.3);
+        }
+
+        /* ─── Draft Panel ─── */
+        .draft-panel {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .draft-panel.visible {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .draft-card {
+            background: rgba(79, 110, 255, 0.05);
+            border: 1px solid rgba(79, 110, 255, 0.15);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .draft-subject {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .draft-body {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+        }
+
+        .draft-body-edit {
+            width: 100%;
+            min-height: 180px;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--accent-blue);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.7;
+            resize: vertical;
+        }
+
+        .draft-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        /* ─── Notify Panel ─── */
+        .notify-panel {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .notify-panel.visible {
+            display: block;
+        }
+
+        .notify-card {
+            background: rgba(240, 180, 41, 0.05);
+            border: 1px solid rgba(240, 180, 41, 0.15);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .notify-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .notify-info strong {
+            color: var(--text-primary);
+        }
+
+        .notify-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ─── Preferences Sidebar ─── */
+        .prefs-panel {
+            margin-top: 24px;
+        }
+
+        .pref-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+
+        .pref-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .pref-key {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-purple);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pref-value {
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .empty-state .icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        /* ─── Inbox List ─── */
+        .inbox-list {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .inbox-list.visible {
+            display: block;
+        }
+
+        .inbox-item {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .inbox-item:hover {
+            background: rgba(79, 110, 255, 0.08);
+            border-color: rgba(79, 110, 255, 0.2);
+            transform: translateX(4px);
+        }
+
+        .inbox-sender {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .inbox-subject {
+            font-size: 12px;
+            color: var(--accent-cyan);
+            margin-bottom: 4px;
+        }
+
+        .inbox-snippet {
+            font-size: 11px;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .inbox-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .inbox-latest .inbox-sender::after {
+            content: 'LATEST';
+            margin-left: 8px;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--accent-green);
+            color: #fff;
+            vertical-align: middle;
+        }
+
+        /* ─── History Panel ─── */
+        .history-panel {
+            margin-top: 24px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-subject {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .history-sender {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .history-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-badge.respond_act,
+        .history-badge.respond {
+            background: rgba(0, 214, 143, 0.15);
+            color: var(--accent-green);
+        }
+
+        .history-badge.notify_human {
+            background: rgba(240, 180, 41, 0.15);
+            color: var(--accent-yellow);
+        }
+
+        .history-badge.ignore {
+            background: rgba(255, 94, 94, 0.15);
+            color: var(--accent-red);
+        }
+
+        .history-status {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .history-time {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .history-delete {
+            background: none;
+            border: 1px solid rgba(255, 94, 94, 0.2);
+            color: var(--accent-red);
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        .history-delete:hover {
+            opacity: 1;
+            background: rgba(255, 94, 94, 0.1);
+        }
+
+        /* ─── New Email Popup ─── */
+        .new-email-popup {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            width: 380px;
+            background: rgba(30, 32, 48, 0.97);
+            border: 1px solid rgba(79, 110, 255, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(79, 110, 255, 0.15);
+            z-index: 1000;
+            animation: slideInPopup 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(12px);
+        }
+
+        @keyframes slideInPopup {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .new-email-popup.hiding {
+            animation: slideOutPopup 0.3s ease forwards;
+        }
+
+        @keyframes slideOutPopup {
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .popup-pulse {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 214, 143, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(0, 214, 143, 0);
+            }
+        }
+
+        .popup-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .popup-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+        }
+
+        .popup-sender {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .popup-subject {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 6px;
+        }
+
+        .popup-preview {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            max-height: 60px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .popup-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .popup-btn.process {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #fff;
+        }
+
+        .popup-btn.process:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 110, 255, 0.3);
+        }
+
+        .popup-btn.dismiss {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .popup-btn.dismiss:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .ambient-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            color: var(--accent-green);
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(0, 214, 143, 0.1);
+            margin-left: 8px;
+        }
+
+        .ambient-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* ─── Result Banner ─── */
+        .result-banner {
+            display: none;
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-top: 16px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result-banner.visible {
+            display: block;
+        }
+
+        .result-banner.success {
+            background: rgba(0, 214, 143, 0.1);
+            border: 1px solid rgba(0, 214, 143, 0.3);
+            color: var(--accent-green);
+        }
+
+        .result-banner.error {
+            background: rgba(255, 94, 94, 0.1);
+            border: 1px solid rgba(255, 94, 94, 0.3);
+            color: var(--accent-red);
+        }
+
+        .result-banner .result-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .result-banner .result-detail {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* ─── Loading Spinner ─── */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ─── Scrollbar ─── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- ─── Top Bar ─── -->
+        <header class="topbar">
+            <div class="topbar-brand">
+                <div class="icon">✉️</div>
+                <div>
+                    <h1>Email Agent</h1>
+                    <div class="subtitle">Ambient Assistant • Powered by Gemini <span class="ambient-indicator"
+                            id="ambientBadge"><span class="ambient-dot"></span> Monitoring</span></div>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn btn-ghost btn-sm" onclick="fetchInbox()">📥 Fetch Inbox</button>
+                <button class="btn btn-ghost btn-sm" onclick="loadHistory()">📋 History</button>
+                <button class="btn btn-ghost btn-sm" onclick="loadPreferences()">🧠 Memory</button>
+                <button class="btn btn-ghost btn-sm" onclick="resetUI()">🔄 New</button>
+            </div>
+        </header>
+
+        <!-- ─── Main Grid ─── -->
+        <div class="main-grid">
+
+            <!-- ─── Left: Input + Inbox ─── -->
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📧 Email Input</div>
+                    </div>
+                    <form id="emailForm" onsubmit="processEmail(event)">
+                        <div class="form-group">
+                            <label>From (Sender)</label>
+                            <input type="text" id="sender" placeholder="alice@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Subject</label>
+                            <input type="text" id="subject" placeholder="Meeting Tomorrow" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Body</label>
+                            <textarea id="body" placeholder="Hi, are you free for a meeting tomorrow at 3 PM?"
+                                required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            ⚡ Process Email
+                        </button>
+                    </form>
+
+                    <!-- Inbox list (from Gmail) -->
+                    <div class="inbox-list" id="inboxList">
+                        <div class="card-header" style="margin-top: 16px;">
+                            <div class="card-title">📥 Gmail Inbox</div>
+                        </div>
+                        <div id="inboxItems"></div>
+                    </div>
+                </div>
+
+                <!-- Preferences Panel -->
+                <div class="card prefs-panel" id="prefsPanel" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-title">🧠 Learned Preferences</div>
+                        <button class="btn btn-danger btn-sm" onclick="clearMemory()">Clear All</button>
+                    </div>
+                    <div id="prefsList">
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            No preferences learned yet.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Panel -->
+                <div class="card history-panel" id="historyPanel" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-title">📋 Processing History</div>
+                    </div>
+                    <div id="historyList">
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            No emails processed yet.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Right: Workflow ─── -->
+            <div>
+                <div class="card" id="workflowCard">
+                    <div class="card-header">
+                        <div class="card-title">⚙️ Workflow</div>
+                        <div id="statusBadge"></div>
+                    </div>
+
+                    <!-- Workflow Timeline -->
+                    <div class="workflow-timeline" id="timeline">
+                        <div class="empty-state">
+                            <div class="icon">🚀</div>
+                            Submit an email to start the workflow
+                        </div>
+                    </div>
+
+                    <!-- Notify Human Panel -->
+                    <div class="notify-panel" id="notifyPanel">
+                        <div class="notify-card">
+                            <div class="card-title" style="margin-bottom: 12px;">🔔 Human Decision Required</div>
+                            <div class="notify-info" id="notifyInfo"></div>
+                            <div class="notify-actions">
+                                <button class="btn btn-ghost" onclick="notifyDecision('ignore')">🗑️ Ignore</button>
+                                <button class="btn btn-primary" onclick="notifyDecision('respond')">✍️ Respond</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Draft Panel -->
+                    <div class="draft-panel" id="draftPanel">
+                        <div class="draft-card">
+                            <div class="card-title" style="margin-bottom: 12px;">📝 Generated Draft</div>
+                            <div class="draft-subject" id="draftSubject"></div>
+                            <div class="draft-body" id="draftBody"></div>
+                            <textarea class="draft-body-edit" id="draftEdit" style="display: none;"></textarea>
+                            <div class="draft-actions" id="draftActions">
+                                <button class="btn btn-success" onclick="approveDraft()">✅ Approve & Send</button>
+                                <button class="btn btn-warning" onclick="enableEdit()">✏️ Edit</button>
+                                <button class="btn btn-danger" onclick="denyDraft()">❌ Deny</button>
+                            </div>
+                            <div class="draft-actions" id="editActions" style="display: none;">
+                                <button class="btn btn-success" onclick="submitEdit()">📤 Send Edited</button>
+                                <button class="btn btn-ghost" onclick="cancelEdit()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result Banner -->
+                    <div class="result-banner" id="resultBanner">
+                        <div class="result-title" id="resultTitle"></div>
+                        <div class="result-detail" id="resultDetail"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ─── State ───
+        let currentDraftSubject = '';
+        let currentDraftBody = '';
+
+        // ─── Helpers ───
+        function getStepIcon(status) {
+            const icons = {
+                completed: '✓',
+                running: '⟳',
+                waiting: '⏳',
+                error: '✗'
+            };
+            return icons[status] || '•';
+        }
+
+        function getStepNameLabel(name) {
+            const labels = {
+                load_memory: '🧠 Load Memory',
+                triage: '🔍 Triage',
+                generate_draft: '✍️ Generate Draft',
+                hitl_checkpoint: '⏸️ HITL Checkpoint',
+                notify_human: '🔔 Notify Human',
+                notify_ignored: '🗑️ Ignored',
+                approved: '✅ Approved',
+                denied: '❌ Denied',
+                ignored: '🗑️ Ignored',
+                learning: '🧠 Learning',
+                sending: '📤 Sending'
+            };
+            return labels[name] || name;
+        }
+
+        function renderTimeline(steps) {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            steps.forEach((step, i) => {
+                const el = document.createElement('div');
+                el.className = 'workflow-step';
+                el.style.animationDelay = `${i * 0.1}s`;
+                el.innerHTML = `
+                    <div class="step-indicator ${step.status}">${getStepIcon(step.status)}</div>
+                    <div class="step-content">
+                        <div class="step-name">${getStepNameLabel(step.name)}</div>
+                        <div class="step-detail">${step.detail || ''}</div>
+                    </div>
+                `;
+                timeline.appendChild(el);
+            });
+        }
+
+        function showDecisionBadge(decision) {
+            const badge = document.getElementById('statusBadge');
+            if (decision === 'respond_act') {
+                badge.innerHTML = '<span class="badge badge-respond">🟢 Respond</span>';
+            } else if (decision === 'notify_human') {
+                badge.innerHTML = '<span class="badge badge-notify">🟡 Notify</span>';
+            } else if (decision === 'ignore') {
+                badge.innerHTML = '<span class="badge badge-ignore">🔴 Ignore</span>';
+            } else {
+                badge.innerHTML = '';
+            }
+        }
+
+        function showResult(type, title, detail) {
+            const banner = document.getElementById('resultBanner');
+            banner.className = `result-banner visible ${type}`;
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultDetail').textContent = detail || '';
+        }
+
+        // ─── Process Email ───
+        async function processEmail(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+            // Hide previous panels
+            document.getElementById('draftPanel').classList.remove('visible');
+            document.getElementById('notifyPanel').classList.remove('visible');
+            document.getElementById('resultBanner').classList.remove('visible');
+            document.getElementById('statusBadge').innerHTML = '';
+
+            const payload = {
+                sender: document.getElementById('sender').value,
+                subject: document.getElementById('subject').value,
+                body: document.getElementById('body').value
+            };
+
+            try {
+                const res = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                renderTimeline(data.steps);
+                showDecisionBadge(data.decision);
+
+                if (data.status === 'waiting_approve') {
+                    // Show draft for approval
+                    currentDraftSubject = data.generated_subject;
+                    currentDraftBody = data.generated_body;
+                    document.getElementById('draftSubject').textContent = data.generated_subject;
+                    document.getElementById('draftBody').textContent = data.generated_body;
+                    document.getElementById('draftBody').style.display = 'block';
+                    document.getElementById('draftEdit').style.display = 'none';
+                    document.getElementById('draftActions').style.display = 'flex';
+                    document.getElementById('editActions').style.display = 'none';
+                    document.getElementById('draftPanel').classList.add('visible');
+                } else if (data.status === 'waiting_notify') {
+                    // Show notify human options
+                    document.getElementById('notifyInfo').innerHTML = `
+                        <strong>From:</strong> ${payload.sender}<br>
+                        <strong>Subject:</strong> ${payload.subject}<br>
+                        <strong>Preview:</strong> ${payload.body.substring(0, 150)}...
+                    `;
+                    document.getElementById('notifyPanel').classList.add('visible');
+                } else if (data.status === 'done' && data.decision === 'ignore') {
+                    showResult('success', '🗑️ Email Ignored', 'Classified as spam/irrelevant — no action taken.');
+                }
+
+            } catch (err) {
+                showResult('error', 'Error', err.message);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '⚡ Process Email';
+        }
+
+        // ─── Notify Decision ───
+        async function notifyDecision(decision) {
+            document.getElementById('notifyPanel').classList.remove('visible');
+
+            try {
+                const res = await fetch('/api/notify_decision', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ decision })
+                });
+                const data = await res.json();
+
+                renderTimeline(data.steps);
+
+                if (data.status === 'waiting_approve') {
+                    currentDraftSubject = data.generated_subject;
+                    currentDraftBody = data.generated_body;
+                    document.getElementById('draftSubject').textContent = data.generated_subject;
+                    document.getElementById('draftBody').textContent = data.generated_body;
+                    document.getElementById('draftBody').style.display = 'block';
+                    document.getElementById('draftEdit').style.display = 'none';
+                    document.getElementById('draftActions').style.display = 'flex';
+                    document.getElementById('editActions').style.display = 'none';
+                    document.getElementById('draftPanel').classList.add('visible');
+                } else if (data.status === 'done') {
+                    showResult('success', '🗑️ Email Ignored', 'You chose to ignore this notification.');
+                }
+            } catch (err) {
+                showResult('error', 'Error', err.message);
+            }
+        }
+
+        // ─── Approve Draft ───
+        async function approveDraft() {
+            document.getElementById('draftPanel').classList.remove('visible');
+
+            try {
+                const res = await fetch('/api/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                renderTimeline(data.steps);
+                showResult('success', '✅ Email Sent!', data.result);
+            } catch (err) {
+                showResult('error', 'Send Failed', err.message);
+            }
+        }
+
+        // ─── Deny Draft ───
+        async function denyDraft() {
+            document.getElementById('draftPanel').classList.remove('visible');
+
+            try {
+                const res = await fetch('/api/deny', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                renderTimeline(data.steps);
+                showResult('success', '❌ Draft Denied', 'Email was discarded without sending.');
+            } catch (err) {
+                showResult('error', 'Error', err.message);
+            }
+        }
+
+        // ─── Edit Draft ───
+        function enableEdit() {
+            document.getElementById('draftBody').style.display = 'none';
+            const editArea = document.getElementById('draftEdit');
+            editArea.value = currentDraftBody;
+            editArea.style.display = 'block';
+            document.getElementById('draftActions').style.display = 'none';
+            document.getElementById('editActions').style.display = 'flex';
+            editArea.focus();
+        }
+
+        function cancelEdit() {
+            document.getElementById('draftBody').style.display = 'block';
+            document.getElementById('draftEdit').style.display = 'none';
+            document.getElementById('draftActions').style.display = 'flex';
+            document.getElementById('editActions').style.display = 'none';
+        }
+
+        async function submitEdit() {
+            const editedBody = document.getElementById('draftEdit').value;
+            document.getElementById('draftPanel').classList.remove('visible');
+
+            try {
+                const res = await fetch('/api/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        body: editedBody,
+                        subject: currentDraftSubject
+                    })
+                });
+                const data = await res.json();
+                renderTimeline(data.steps);
+
+                let resultMsg = data.result;
+                if (data.learned) {
+                    resultMsg += `\n🧠 Learned: ${data.learned}`;
+                }
+                showResult('success', '📤 Edited Email Sent!', resultMsg);
+
+                // Refresh preferences
+                loadPreferences();
+            } catch (err) {
+                showResult('error', 'Send Failed', err.message);
+            }
+        }
+
+        // ─── Preferences ───
+        async function loadPreferences() {
+            const panel = document.getElementById('prefsPanel');
+            panel.style.display = 'block';
+
+            try {
+                const res = await fetch('/api/preferences');
+                const data = await res.json();
+                const list = document.getElementById('prefsList');
+
+                if (Object.keys(data.preferences).length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div class="icon">📭</div>No preferences learned yet.</div>';
+                } else {
+                    list.innerHTML = Object.entries(data.preferences)
+                        .map(([k, v]) => `
+                            <div class="pref-item">
+                                <span class="pref-key">${k}</span>
+                                <span class="pref-value">${v}</span>
+                            </div>
+                        `).join('');
+                }
+            } catch (err) {
+                console.error('Failed to load preferences:', err);
+            }
+        }
+
+        async function clearMemory() {
+            if (!confirm('Clear all learned preferences?')) return;
+            try {
+                await fetch('/api/clear_memory', { method: 'POST' });
+                loadPreferences();
+            } catch (err) {
+                console.error('Failed to clear memory:', err);
+            }
+        }
+
+        // ─── Fetch Inbox ───
+        async function fetchInbox() {
+            const list = document.getElementById('inboxList');
+            const items = document.getElementById('inboxItems');
+            list.classList.add('visible');
+            items.innerHTML = '<div class="empty-state"><span class="spinner"></span> Fetching...</div>';
+
+            try {
+                const res = await fetch('/api/fetch_inbox');
+                const data = await res.json();
+
+                if (data.emails.length === 0) {
+                    items.innerHTML = '<div class="empty-state">No emails found.</div>';
+                    return;
+                }
+
+                items.innerHTML = data.emails.map((email, idx) => `
+                    <div class="inbox-item${idx < 3 ? '' : ' disabled'}" data-index="${idx}">
+                        <div class="inbox-sender">${email.sender}</div>
+                        <div class="inbox-subject">${email.subject}</div>
+                        <div class="inbox-snippet">${email.body.substring(0, 100)}</div>
+                    </div>
+                `).join('');
+
+                // Top 3 emails are clickable
+                window._inboxEmails = data.emails;
+                items.querySelectorAll('.inbox-item:not(.disabled)').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const i = parseInt(el.getAttribute('data-index'));
+                        const e = window._inboxEmails[i];
+                        document.getElementById('sender').value = e.sender;
+                        document.getElementById('subject').value = e.subject;
+                        document.getElementById('body').value = e.body;
+                        list.classList.remove('visible');
+                    });
+                });
+            } catch (err) {
+                items.innerHTML = `<div class="empty-state" style="color:var(--accent-red)">Error: ${err.message}</div>`;
+            }
+        }
+
+        // ─── History ───
+        async function loadHistory() {
+            const panel = document.getElementById('historyPanel');
+            const list = document.getElementById('historyList');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            if (panel.style.display === 'none') return;
+
+            list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
+
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+
+                if (!data.history || data.history.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div class="icon">📭</div>No emails processed yet.</div>';
+                    return;
+                }
+
+                // Store history data globally for click handling
+                window._historyData = data.history;
+
+                list.innerHTML = data.history.map((h, idx) => `
+                    <div class="history-item" id="history-${h.id}" style="cursor: pointer;">
+                        <div class="history-info" onclick="showHistoryFlow(${idx})">
+                            <div class="history-subject">${h.subject || 'No subject'}</div>
+                            <div class="history-sender">${h.sender || 'Unknown sender'}</div>
+                            <div class="history-meta">
+                                <span class="history-badge ${h.decision || ''}">${h.decision || 'unknown'}</span>
+                                <span class="history-status">→ ${h.status || ''}</span>
+                                <span class="history-time">${h.timestamp || ''}</span>
+                                ${h.workflow_steps ? '<span style="font-size:10px;color:var(--accent-cyan);">👆 click to view flow</span>' : ''}
+                            </div>
+                        </div>
+                        <button class="history-delete" onclick="event.stopPropagation(); deleteHistoryItem(${h.id})">🗑️ Delete</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = `<div class="empty-state" style="color:var(--accent-red)">Error: ${err.message}</div>`;
+            }
+        }
+
+        function showHistoryFlow(idx) {
+            const h = window._historyData[idx];
+            if (!h) return;
+
+            const timeline = document.getElementById('timeline');
+            const badge = document.getElementById('statusBadge');
+
+            // Hide active panels
+            document.getElementById('draftPanel').classList.remove('visible');
+            document.getElementById('notifyPanel').classList.remove('visible');
+            document.getElementById('resultBanner').classList.remove('visible');
+
+            // Badge
+            badge.innerHTML = `<span style="font-size:11px;padding:4px 10px;border-radius:6px;background:rgba(79,110,255,0.15);color:var(--accent-blue);">📋 Viewing: ${h.subject || 'History'}</span>`;
+
+            if (h.workflow_steps && h.workflow_steps.length > 0) {
+                // ── Full saved workflow ──
+                renderTimeline(h.workflow_steps);
+            } else {
+                // ── Reconstruct a detailed summary for old entries ──
+                const steps = [];
+
+                // Step 1: Load Memory
+                steps.push({ name: 'load_memory', status: 'completed', detail: 'User preferences loaded' });
+
+                // Step 2: Triage
+                const triageDecision = h.decision || 'unknown';
+                let triageLabel = triageDecision;
+                if (triageDecision === 'notify_human') triageLabel = 'notify_human — Email needs human attention';
+                else if (triageDecision === 'respond_act') triageLabel = 'respond_act — Email requires a response';
+                else if (triageDecision === 'ignore') triageLabel = 'ignore — Spam/irrelevant email';
+                steps.push({ name: 'triage', status: 'completed', detail: `Decision: ${triageLabel}` });
+
+                // Step 3: Route based on decision
+                if (triageDecision === 'ignore') {
+                    steps.push({ name: 'ignored', status: 'completed', detail: 'Email classified as spam/irrelevant — auto-ignored' });
+
+                } else if (triageDecision === 'notify_human') {
+                    steps.push({ name: 'notify_human', status: 'completed', detail: '🔔 Human was notified and asked: Ignore or Respond?' });
+
+                    if (h.status === 'ignored') {
+                        steps.push({ name: 'notify_ignored', status: 'completed', detail: 'Human chose to ignore this email' });
+                    } else {
+                        // Human chose to respond
+                        steps.push({ name: 'notify_human', status: 'completed', detail: '👤 Human Decision: RESPOND — chose to reply to this email' });
+                        steps.push({ name: 'generate_draft', status: 'completed', detail: 'Draft generated by Gemini AI' });
+                        steps.push({ name: 'hitl_checkpoint', status: 'completed', detail: 'Human reviewed the draft' });
+
+                        if (h.status === 'sent') {
+                            steps.push({ name: 'sending', status: 'completed', detail: '📤 Email sent successfully' });
+                        } else if (h.status === 'denied') {
+                            steps.push({ name: 'denied', status: 'completed', detail: '❌ Human denied — draft discarded' });
+                        }
+                    }
+
+                } else if (triageDecision === 'respond_act') {
+                    steps.push({ name: 'generate_draft', status: 'completed', detail: 'Draft auto-generated by Gemini AI' });
+                    steps.push({ name: 'hitl_checkpoint', status: 'completed', detail: 'Human reviewed the draft' });
+
+                    if (h.status === 'sent') {
+                        steps.push({ name: 'sending', status: 'completed', detail: '📤 Email sent successfully' });
+                    } else if (h.status === 'denied') {
+                        steps.push({ name: 'denied', status: 'completed', detail: '❌ Human denied — draft discarded' });
+                    }
+                }
+
+                renderTimeline(steps);
+            }
+
+            // ── Show email details + draft in the right panel ──
+            let detailHTML = '';
+
+            // Email info card
+            detailHTML += `
+                <div style="margin-top:16px;padding:16px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;">
+                    <div style="font-size:11px;font-weight:700;color:var(--accent-purple);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">📧 Original Email</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong style="color:var(--text-primary);">From:</strong> ${h.sender || 'Unknown'}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong style="color:var(--text-primary);">Subject:</strong> ${h.subject || 'No subject'}</div>
+                    ${h.body_preview ? `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;padding:8px;background:rgba(0,0,0,0.2);border-radius:4px;line-height:1.5;">${h.body_preview}</div>` : ''}
+                    <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">⏰ ${h.timestamp || 'Unknown time'}</div>
+                </div>
+            `;
+
+            // Decision summary
+            const decisionColor = h.decision === 'ignore' ? 'var(--accent-red)' : h.decision === 'notify_human' ? 'var(--accent-yellow)' : 'var(--accent-green)';
+            detailHTML += `
+                <div style="margin-top:12px;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;">
+                    <div style="font-size:11px;font-weight:700;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">📊 Result Summary</div>
+                    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                        <span style="font-size:11px;padding:3px 10px;border-radius:4px;background:${decisionColor}22;color:${decisionColor};font-weight:600;">🔍 Triage: ${(h.decision || 'unknown').toUpperCase()}</span>
+                        <span style="font-size:11px;padding:3px 10px;border-radius:4px;background:rgba(255,255,255,0.05);color:var(--text-primary);font-weight:600;">📌 Status: ${(h.status || 'unknown').toUpperCase()}</span>
+                    </div>
+                </div>
+            `;
+
+            // Append to timeline
+            timeline.innerHTML += detailHTML;
+
+            // Show generated draft in draft panel
+            if (h.generated_draft) {
+                const draftPanel = document.getElementById('draftPanel');
+                document.getElementById('draftSubject').textContent = h.subject || '';
+                document.getElementById('draftBody').innerHTML = `
+                    <div style="font-size:11px;font-weight:700;color:var(--accent-yellow);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">📝 Final Draft (as sent)</div>
+                    <div style="white-space:pre-wrap;line-height:1.6;">${h.generated_draft}</div>
+                `;
+                document.getElementById('draftBody').style.display = 'block';
+                document.getElementById('draftEdit').style.display = 'none';
+                document.getElementById('draftActions').style.display = 'none';
+                document.getElementById('editActions').style.display = 'none';
+                draftPanel.classList.add('visible');
+            }
+        }
+
+        async function deleteHistoryItem(id) {
+            try {
+                const res = await fetch(`/api/history/delete/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.result === 'deleted') {
+                    const el = document.getElementById(`history-${id}`);
+                    if (el) {
+                        el.style.opacity = '0';
+                        el.style.transform = 'translateX(-20px)';
+                        setTimeout(() => el.remove(), 300);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to delete:', err);
+            }
+        }
+
+        // ─── Reset ───
+        function resetUI() {
+            document.getElementById('sender').value = '';
+            document.getElementById('subject').value = '';
+            document.getElementById('body').value = '';
+            document.getElementById('timeline').innerHTML = '<div class="empty-state"><div class="icon">🚀</div>Submit an email to start the workflow</div>';
+            document.getElementById('statusBadge').innerHTML = '';
+            document.getElementById('draftPanel').classList.remove('visible');
+            document.getElementById('notifyPanel').classList.remove('visible');
+            document.getElementById('resultBanner').classList.remove('visible');
+            document.getElementById('draftBody').style.display = 'block';
+            document.getElementById('draftEdit').style.display = 'none';
+            document.getElementById('draftActions').style.display = 'flex';
+            document.getElementById('editActions').style.display = 'none';
+            document.getElementById('historyPanel').style.display = 'none';
+        }
+
+        // ─── Ambient Monitoring ───
+        let ambientInterval = null;
+        let ambientPopupEmail = null;
+
+        function startAmbientMonitoring() {
+            // Initial check to set baseline
+            fetch('/api/check_new').then(r => r.json()).then(data => {
+                console.log('🔍 Ambient monitoring initialized');
+            }).catch(() => { });
+
+            // Poll every 30 seconds
+            ambientInterval = setInterval(checkForNewEmails, 30000);
+        }
+
+        async function checkForNewEmails() {
+            try {
+                const res = await fetch('/api/check_new');
+                const data = await res.json();
+
+                if (data.has_new && data.email) {
+                    ambientPopupEmail = data.email;
+                    showNewEmailPopup(data.email);
+                }
+            } catch (err) {
+                console.log('Ambient check failed:', err.message);
+            }
+        }
+
+        function showNewEmailPopup(email) {
+            // Remove existing popup if any
+            const existing = document.getElementById('newEmailPopup');
+            if (existing) existing.remove();
+
+            const popup = document.createElement('div');
+            popup.id = 'newEmailPopup';
+            popup.className = 'new-email-popup';
+            popup.innerHTML = `
+                <div class="popup-header">
+                    <span class="popup-pulse"></span>
+                    <span class="popup-title">📨 New Email Received</span>
+                    <button class="popup-close" onclick="dismissPopup()">✕</button>
+                </div>
+                <div class="popup-sender">${email.sender}</div>
+                <div class="popup-subject">${email.subject}</div>
+                <div class="popup-preview">${email.body.substring(0, 150)}...</div>
+                <div class="popup-actions">
+                    <button class="popup-btn process" onclick="processPopupEmail()">⚡ Process Now</button>
+                    <button class="popup-btn dismiss" onclick="dismissPopup()">Dismiss</button>
+                </div>
+            `;
+            document.body.appendChild(popup);
+
+            // Auto-dismiss after 60 seconds
+            setTimeout(() => {
+                if (document.getElementById('newEmailPopup')) {
+                    dismissPopup();
+                }
+            }, 60000);
+        }
+
+        function processPopupEmail() {
+            if (!ambientPopupEmail) return;
+
+            // Fill in the email form
+            document.getElementById('sender').value = ambientPopupEmail.sender;
+            document.getElementById('subject').value = ambientPopupEmail.subject;
+            document.getElementById('body').value = ambientPopupEmail.body;
+
+            // Dismiss popup
+            dismissPopup();
+
+            // Auto-trigger processing
+            document.getElementById('emailForm').dispatchEvent(new Event('submit'));
+        }
+
+        function dismissPopup() {
+            const popup = document.getElementById('newEmailPopup');
+            if (popup) {
+                popup.classList.add('hiding');
+                setTimeout(() => popup.remove(), 300);
+            }
+            ambientPopupEmail = null;
+        }
+
+        // Start ambient monitoring when page loads
+        startAmbientMonitoring();
+    </script>
+</body>
+
+</html>
