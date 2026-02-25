@@ -454,6 +454,10 @@
             case 'triage_complete':
                 handleTriageComplete(message);
                 break;
+            case 'approval_request':
+                // Treat same as approval_required
+                handleApprovalRequired(message);
+                break;
             case 'approval_required':
                 handleApprovalRequired(message);
                 break;
@@ -562,93 +566,92 @@
     
     // ===== UI FUNCTIONS =====
     function createApprovalCard(data) {
-        const card = document.createElement('div');
-        card.className = 'approval-item';
-        card.id = `approval-${data.workflow_id}`;
-        
-        const time = new Date(data.timestamp).toLocaleTimeString();
-        const isNotification = data.notification_type === true;
-        
-        // For notifications, we'll show a special layout with a "Respond" button that opens a text area
-        if (isNotification) {
-            card.innerHTML = `
-                <div class="approval-header">
-                    <div>
-                        <span class="approval-badge">🔔 Notification</span>
-                        <span style="font-size: 12px; color: #666; margin-left: 8px;">${time}</span>
-                    </div>
-                    <span style="font-size: 12px; color: #888;">#${data.workflow_id}</span>
+    const card = document.createElement('div');
+    card.className = 'approval-item';
+    card.id = `approval-${data.workflow_id}`;
+    
+    const time = new Date(data.timestamp).toLocaleTimeString();
+    const isNotification = data.notification_type === true;
+    
+    if (isNotification) {
+        card.innerHTML = `
+            <div class="approval-header">
+                <div>
+                    <span class="approval-badge">🔔 Notification</span>
+                    <span style="font-size: 12px; color: #666; margin-left: 8px;">${time}</span>
                 </div>
-                
-                <div style="font-size: 13px; margin: 8px 0;">
-                    <strong>From:</strong> ${data.recipient}<br>
-                    <strong>Subject:</strong> ${data.subject}
+                <span style="font-size: 12px; color: #888;">#${data.workflow_id}</span>
+            </div>
+            
+            <div style="font-size: 13px; margin: 8px 0;">
+                <strong>From:</strong> ${data.recipient}<br>
+                <strong>Subject:</strong> ${data.subject}
+            </div>
+            
+            <div class="email-preview">${data.draft_preview}</div>
+            
+            <div id="notification-buttons-${data.workflow_id}" class="approval-buttons" style="grid-template-columns: 1fr 1fr;">
+                <button class="btn btn-success" onclick="showResponseInput('${data.workflow_id}')">
+                    ✍️ Respond
+                </button>
+                <button class="btn btn-secondary" onclick="submitDecision('${data.workflow_id}', 'ignore')">
+                    📦 Ignore
+                </button>
+            </div>
+            
+            <div id="response-input-${data.workflow_id}" style="display: none; margin-top: 15px;">
+                <label style="font-weight: bold;">Type your response:</label>
+                <textarea id="response-text-${data.workflow_id}" rows="5" style="width: 100%; padding: 8px; margin: 8px 0;"></textarea>
+                <button class="btn btn-primary" onclick="submitCustomResponse('${data.workflow_id}')">
+                    📤 Submit Response for Approval
+                </button>
+                <button class="btn btn-secondary" onclick="cancelResponse('${data.workflow_id}')">
+                    Cancel
+                </button>
+            </div>
+        `;
+} else {
+        // Regular approval card (with Approve/Deny/Edit)
+        card.innerHTML = `
+            <div class="approval-header">
+                <div>
+                    <span class="approval-badge">⚠️ ${data.action_type}</span>
+                    <span style="font-size: 12px; color: #666; margin-left: 8px;">${time}</span>
                 </div>
-                
-                <div class="email-preview">${data.draft_preview}</div>
-                
-                <div id="notification-buttons-${data.workflow_id}" class="approval-buttons">
-                    <button class="btn btn-success" onclick="showResponseInput('${data.workflow_id}')">
-                        ✍️ Respond
-                    </button>
-                    <button class="btn btn-secondary" onclick="submitDecision('${data.workflow_id}', 'ignore')">
-                        📦 Ignore
-                    </button>
-                </div>
-                
-                <div id="response-input-${data.workflow_id}" style="display: none; margin-top: 15px;">
-                    <label style="font-weight: bold;">Type your response:</label>
-                    <textarea id="response-text-${data.workflow_id}" rows="5" style="width: 100%; padding: 8px; margin: 8px 0;"></textarea>
-                    <button class="btn btn-primary" onclick="submitCustomResponse('${data.workflow_id}')">
-                        📤 Submit Response for Approval
-                    </button>
-                    <button class="btn btn-secondary" onclick="cancelResponse('${data.workflow_id}')">
-                        Cancel
-                    </button>
-                </div>
-            `;
-        } else {
-            // Regular approval card (with Approve/Deny/Edit)
-            card.innerHTML = `
-                <div class="approval-header">
-                    <div>
-                        <span class="approval-badge">⚠️ ${data.action_type}</span>
-                        <span style="font-size: 12px; color: #666; margin-left: 8px;">${time}</span>
-                    </div>
-                    <span style="font-size: 12px; color: #888;">#${data.workflow_id}</span>
-                </div>
-                
-                <div style="font-size: 13px; margin: 8px 0;">
-                    <strong>To:</strong> ${data.recipient}<br>
-                    <strong>Subject:</strong> ${data.subject}
-                </div>
-                
-                <div class="email-preview">${data.draft_preview}</div>
-                
-                <div class="approval-buttons">
-                    <button class="btn btn-success" onclick="submitDecision('${data.workflow_id}', 'approve')">
-                        ✓ Approve
-                    </button>
-                    <button class="btn btn-danger" onclick="submitDecision('${data.workflow_id}', 'deny')">
-                        ✗ Deny
-                    </button>
-                    <button class="btn btn-warning" onclick="toggleEdit('${data.workflow_id}')">
-                        ✏️ Edit
-                    </button>
-                </div>
-                
-                <div class="edit-section" id="edit-${data.workflow_id}">
-                    <label style="margin-top: 10px;">Edit email content:</label>
-                    <textarea id="edit-content-${data.workflow_id}" rows="4">${data.body || ''}</textarea>
-                    <button class="btn btn-primary" onclick="submitDecision('${data.workflow_id}', 'edit')" style="margin-top: 8px;">
-                        ✓ Submit Edit
-                    </button>
-                </div>
-            `;
-        }
-        
-        return card;
+                <span style="font-size: 12px; color: #888;">#${data.workflow_id}</span>
+            </div>
+            
+            <div style="font-size: 13px; margin: 8px 0;">
+                <strong>To:</strong> ${data.recipient}<br>
+                <strong>Subject:</strong> ${data.subject}
+            </div>
+            
+            <div class="email-preview">${data.draft_preview}</div>
+            
+            <div class="approval-buttons">
+                <button class="btn btn-success" onclick="submitDecision('${data.workflow_id}', 'approve')">
+                    ✓ Approve
+                </button>
+                <button class="btn btn-danger" onclick="submitDecision('${data.workflow_id}', 'deny')">
+                    ✗ Deny
+                </button>
+                <button class="btn btn-warning" onclick="toggleEdit('${data.workflow_id}')">
+                    ✏️ Edit
+                </button>
+            </div>
+            
+            <div class="edit-section" id="edit-${data.workflow_id}">
+                <label style="margin-top: 10px;">Edit email content:</label>
+                <textarea id="edit-content-${data.workflow_id}" rows="4">${data.body || ''}</textarea>
+                <button class="btn btn-primary" onclick="submitDecision('${data.workflow_id}', 'edit')" style="margin-top: 8px;">
+                    ✓ Submit Edit
+                </button>
+            </div>
+        `;
     }
+    
+    return card;
+}
     
     // Functions for notification response
     function showResponseInput(workflowId) {

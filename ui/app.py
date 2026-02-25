@@ -5,9 +5,9 @@ from fastapi.staticfiles import StaticFiles
 import asyncio
 import json
 import uuid
+import sys 
 from typing import Dict
 from datetime import datetime
-import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,6 +18,13 @@ load_dotenv()
 from src.integrations.gmail_auth import authenticate_google_services
 from src.tools.google_tools import initialize_tools
 from src.agents.email_graph import create_email_agent
+
+
+background_loop = None
+
+async def _set_event(event):
+    """Helper to set an event from a coroutine."""
+    event.set()
 
 app = FastAPI(title="Email Agent HITL Interface")
 
@@ -100,7 +107,16 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 # Signal the waiting workflow
                 if workflow_id in approval_events:
-                    approval_events[workflow_id].set()
+                    if background_loop:
+                        # Schedule the set on the background loop
+                        asyncio.run_coroutine_threadsafe(
+                            _set_event(approval_events[workflow_id]),
+                            background_loop
+                        )
+                        print(f"   🔔 Scheduled event set for {workflow_id}")
+                    else:
+                        # Fallback (should not happen)
+                        approval_events[workflow_id].set()
                 
                 # Remove from pending
                 if workflow_id in pending_approvals:
@@ -289,17 +305,53 @@ async def run_agent_workflow(workflow_id: str, email_data: dict):
                 return
             
             elif decision == "respond":
-                # User wants to respond - continue workflow
-                print(f"   ▶️  Continuing to draft response...")
+                print(f"   ▶️  User wants to respond - creating draft...")
                 
-                # Update state to trigger respond flow
-                email_data["triage_decision"] = "respond"
+                # ✅ FIX: Instead of re-invoking the whole workflow,
+                # manually call the react_agent node
+                from src.nodes.react_agent import react_agent_node
                 
-                # Re-invoke agent to get draft
-                result = await loop.run_in_executor(
-                    None,
-                    lambda: agent.invoke(email_data, config)
-                )
+                # Update state to indicate we're responding
+                email_data_for_draft = {
+                    **result,  # Keep existing state
+                    "triage_decision": "respond",
+                    "email_id": email_data["email_id"],
+                    "email_from": email_data["email_from"],
+                    "email_to": email_data.get("email_to", "you@company.com"),
+                    "email_subject": email_data["email_subject"],
+                    "email_body": email_data["email_body"],
+                }
+                
+                try:
+                    print(f"   🤖 Calling react_agent to generate draft...")
+                    
+                    # Call react_agent directly in executor
+                    draft_result = await loop.run_in_executor(
+                        None,
+                        lambda: react_agent_node(email_data_for_draft)
+                    )
+                    
+                    print(f"   ✅ Draft created")
+                    print(f"   Draft has pending_action: {draft_result.get('pending_action') is not None}")
+                    
+                    # Update result with draft
+                    result = {
+                        **result,
+                        **draft_result,
+                        "requires_approval": True  # Force approval
+                    }
+                    
+                except Exception as e:
+                    print(f"   ❌ Error creating draft: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    
+                    await broadcast_message({
+                        "type": "workflow_error",
+                        "workflow_id": workflow_id,
+                        "error": f"Failed to create draft: {str(e)}"
+                    })
+                    return
         
         # ✅ Handle respond - show draft for approval
         if result.get("requires_approval"):
@@ -359,10 +411,13 @@ async def run_agent_workflow(workflow_id: str, email_data: dict):
             
             print(f"\n▶️  Resuming workflow {workflow_id}")
             print(f"   Decision: {decision}")
+            print(f"   🔍 DEBUG: About to check decision type...")
+            sys.stdout.flush()
             
             # ✅ Handle deny - save to memory
             if decision == "deny":
                 print(f"   🚫 User denied - saving to memory")
+                sys.stdout.flush()
                 
                 from src.nodes.memory import get_memory
                 memory = get_memory()
@@ -384,32 +439,86 @@ async def run_agent_workflow(workflow_id: str, email_data: dict):
                 })
                 return
             
+            print(f"   🔍 DEBUG: Passed deny check, continuing...")
+            sys.stdout.flush()
+            
+            # ✅ FIX: Instead of re-invoking the graph, manually execute and update memory
+            
             # Update state with decision
             updated_state = {
                 **result,
                 "human_decision": decision
             }
             
+            print(f"   🔍 DEBUG: Updated state created")
+            sys.stdout.flush()
+            
             if decision == "edit" and edited_content:
+                print(f"   ✏️  User edited - using edited content")
+                sys.stdout.flush()
                 updated_state["human_feedback"] = {
                     "body_content": edited_content
                 }
                 updated_state["human_decision"] = "edit"
+                
+                # Update the pending_action with edited content
+                if updated_state.get("pending_action"):
+                    updated_state["pending_action"]["args"]["body"] = edited_content
             
-            # Resume workflow
-            final_result = await loop.run_in_executor(
-                None,
-                lambda: agent.invoke(updated_state, config)
-            )
+            print(f"   ⚙️  Executing action...")
+            sys.stdout.flush()
             
-            # Notify completion
-            await broadcast_message({
-                "type": "workflow_complete",
-                "workflow_id": workflow_id,
-                "decision": decision,
-                "execution_status": final_result.get("execution_status", ""),
-                "execution_result": final_result.get("execution_result", "")
-            })
+            # Manually call execute_action_node and update_memory_node
+            from src.nodes.execute import execute_action_node
+            from src.nodes.memory import update_memory_node
+            
+            print(f"   🔍 DEBUG: Imported nodes, about to execute...")
+            sys.stdout.flush()
+            
+            try:
+                # Execute the action
+                print(f"   🔍 DEBUG: Calling execute_action_node...")
+                sys.stdout.flush()
+                
+                execution_result = await loop.run_in_executor(
+                    None,
+                    lambda: execute_action_node(updated_state)
+                )
+                
+                print(f"   ✅ Action executed: {execution_result.get('execution_status')}")
+                sys.stdout.flush()
+                
+                # Update memory
+                print(f"   🔍 DEBUG: Calling update_memory_node...")
+                sys.stdout.flush()
+                
+                memory_result = await loop.run_in_executor(
+                    None,
+                    lambda: update_memory_node(execution_result)
+                )
+                
+                print(f"   💾 Memory updated")
+                sys.stdout.flush()
+                
+                # Notify completion
+                await broadcast_message({
+                    "type": "workflow_complete",
+                    "workflow_id": workflow_id,
+                    "decision": decision,
+                    "execution_status": execution_result.get("execution_status", ""),
+                    "execution_result": execution_result.get("execution_result", "")
+                })
+                
+            except Exception as e:
+                print(f"   ❌ Error executing/updating: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                await broadcast_message({
+                    "type": "workflow_error",
+                    "workflow_id": workflow_id,
+                    "error": f"Execution failed: {str(e)}"
+                })
             
         else:
             # No approval needed (auto-processed)

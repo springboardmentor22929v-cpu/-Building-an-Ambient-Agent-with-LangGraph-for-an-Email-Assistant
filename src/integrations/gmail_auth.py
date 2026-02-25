@@ -10,6 +10,7 @@ SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',  # Read emails
     'https://www.googleapis.com/auth/gmail.send',      # Send emails (for later)
     'https://www.googleapis.com/auth/calendar.readonly',  # Read calendar
+    'https://www.googleapis.com/auth/gmail.modify',
     'https://www.googleapis.com/auth/calendar.events'     # Create events
 ]
 
