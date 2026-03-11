@@ -40,8 +40,7 @@ ambient_agent_101-m/
 │
 ├── notebooks/                    # Interactive tutorials
 │   ├── ambient_agent.ipynb       # Main learning notebook
-│   ├── evaluation.ipynb          # Agent evaluation
-│   └── img/                      # Documentation images
+│   └── evaluation.ipynb          # Agent evaluation
 │
 ├── eval/                         # Evaluation framework
 │   ├── email_dataset.py          # Test email datasets
@@ -70,7 +69,7 @@ ambient_agent_101-m/
 - **ReAct Architecture**: Reasoning and action loop for complex email handling
 - **Tool Integration**: Calendar management, email composition, information retrieval
 - **Structured Output**: Type-safe responses using Pydantic models
-- **Multi-Model Support**: OpenAI, Anthropic, and AWS Bedrock
+- **Multi-Model Support**: Google Gemini (primary), OpenAI, Anthropic, and AWS Bedrock
 
 ### Memory Management
 - **SQLite Persistence**: Long-term storage of user preferences and patterns
@@ -88,9 +87,10 @@ ambient_agent_101-m/
 ### Prerequisites
 
 - Python 3.11 or higher
-- OpenAI API key ([sign up here](https://openai.com/api/))
-- LangSmith account ([sign up here](https://smith.langchain.com/))
+- Google Gemini API key (primary LLM provider)
+- LangSmith account for tracing ([sign up here](https://smith.langchain.com/))
 - Gmail account (optional, for production use)
+- Google Cloud credentials.json file (for Gmail API access)
 
 ### Quick Start
 
@@ -107,17 +107,26 @@ cp .env.example .env
 ```
 
 Required environment variables:
-```
-OPENAI_API_KEY=your_openai_key
-LANGSMITH_API_KEY=your_langsmith_key
-LANGSMITH_TRACING=true
-```
-
-
+```env
+# Gemini API Configuration (Primary)
 GEMINI_API_KEY=Your_API_Key
 LLM_MODEL=gemini-2.5-flash-lite
-
 GOOGLE_APPLICATION_CREDENTIALS=credentials.json
+
+# LangSmith Tracing
+LANGSMITH_API_KEY=Your_API_Key
+LANGSMITH_TRACING=true
+LANGSMITH_ENDPOINT=https://api.smith.langchain.com
+LANGSMITH_PROJECT=Your_Project_Name
+
+# Optional: Alternative LLM Providers
+# ANTHROPIC_API_KEY=
+# AZURE_OPENAI_API_KEY=
+# AZURE_OPENAI_ENDPOINT=
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
+# AWS_REGION=
+```
 
 3. **Install with uv (recommended)**
 ```bash
@@ -163,17 +172,24 @@ Available graphs:
 
 ### Gmail Production Setup
 
-1. **Configure Gmail OAuth**
+1. **Obtain Google Cloud credentials**
+   - Create a project in Google Cloud Console
+   - Enable Gmail API for your project
+   - Create OAuth 2.0 credentials (Desktop app)
+   - Download the credentials file and save it as `credentials.json` in the project root
+   - Set the path in your `.env` file: `GOOGLE_APPLICATION_CREDENTIALS=credentials.json`
+
+2. **Configure Gmail OAuth**
 ```bash
 python src/email_assistant/tools/gmail/setup_gmail.py
 ```
 
-2. **Set up scheduled monitoring**
+3. **Set up scheduled monitoring**
 ```bash
 python src/email_assistant/tools/gmail/setup_cron.py
 ```
 
-3. **Test email ingestion**
+4. **Test email ingestion**
 ```bash
 python src/email_assistant/tools/gmail/run_ingest.py
 ```
@@ -249,7 +265,19 @@ pytest tests/test_notebooks.py -n auto
 
 ## Alternative LLM Models
 
-The project supports multiple LLM providers. Edit `src/email_assistant/utils.py` to switch models:
+The project uses Google Gemini as the primary LLM provider. To use alternative providers, edit `src/email_assistant/utils.py`:
+
+**Google Gemini (Default)**:
+```python
+from langchain_google_genai import ChatGoogleGenerativeAI
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite")
+```
+
+**OpenAI GPT**:
+```python
+from langchain_openai import ChatOpenAI
+llm = ChatOpenAI(model="gpt-4")
+```
 
 **Anthropic Claude**:
 ```python
