@@ -62,29 +62,28 @@ LANGSMITH_PROJECT=Your_Project_Name
 - [Ambient Agents Concept](https://blog.langchain.dev/introducing-ambient-agents/)
 - [Gmail API Documentation](https://developers.google.com/gmail/api)
 
-![overview-hitl](notebooks/img/overview_hitl.png)
 
 This section shows how to add human-in-the-loop (HITL), allowing the user to review specific tool calls (e.g., send email, schedule meeting). For this, we use [Agent Inbox](https://github.com/langchain-ai/agent-inbox) as an interface for human in the loop. You can see the linked code for the full implementation in [src/email_assistant/email_assistant_hitl.py](/src/email_assistant/email_assistant_hitl.py).
 
-![Agent Inbox showing email threads](notebooks/img/agent-inbox.png)
+
 
 ### Section 3. Memory  
 * Code: [src/email_assistant/email_assistant_hitl_memory.py](/src/email_assistant/email_assistant_hitl_memory.py)
 
 This notebook shows how to add memory to the email assistant, allowing it to learn from user feedback and adapt to preferences over time. The memory-enabled assistant ([email_assistant_hitl_memory.py](/src/email_assistant/email_assistant_hitl_memory.py)) uses the [LangGraph Store](https://langchain-ai.github.io/langgraph/concepts/memory/#long-term-memory) to persist memories. You can see the linked code for the full implementation in [src/email_assistant/email_assistant_hitl_memory.py](/src/email_assistant/email_assistant_hitl_memory.py).
 
-![overview-memory](notebooks/img/overview_memory.png)  
+  
 
 
 
 
 ### [Optional for Training] Section 4. Evaluation 
 * Notebook: [notebooks/evaluation.ipynb](/notebooks/evaluation.ipynb)
-![overview-eval](notebooks/img/overview_eval.png)
+
 
 This notebook introduces evaluation with an email dataset in [eval/email_dataset.py](/eval/email_dataset.py). It shows how to run evaluations using Pytest and the LangSmith `evaluate` API. It runs evaluation for emails responses using LLM-as-a-judge as well as evaluations for tools calls and triage decisions.
 
-![Screenshot 2025-04-08 at 8 07 48 PM](notebooks/img/eval.png)
+
 
 
 
