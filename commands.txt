@@ -1,0 +1,42 @@
+-> The commands that , required to run the run_ingest.py file
+1) The basic, required command:
+python run_ingest.py --email amarvinesh5264@gmail.com
+
+2) (Changes how far back to look for emails; default is 120 minutes)
+python run_ingest.py --email amarvinesh5264@gmail.com
+
+3) (Stops the script early after processing just one email)
+python run_ingest.py --email amarvinesh5264@gmail.com
+
+4) (Includes emails that you have already opened/read)
+python run_ingest.py --email amarvinesh5264@gmail.com
+
+5) (Processes emails again even if the script has already processed them before)
+python run_ingest.py --email amarvinesh5264@gmail.com
+
+6) (Skips the thread and sender filtering logic)
+python run_ingest.py --email amarvinesh5264@gmail.com
+
+7) (Changes the LangGraph name it connects to; default is "email_assistant_hitl_memory_gmail")
+python run_ingest.py --email amarvinesh5264@gmail.com
+
+8) (Changes the LangGraph server URL; default is localhost port 2024)
+python run_ingest.py --email amarvinesh5264@gmail.com
+
+Example combining multiple commands:
+python run_ingest.py --email your.email@gmail.com --minutes-since 1440 --include-read --early
+
+
+-> Two run the LangGraph Server :
+langgraph dev
+
+langgraph dev --no-reload
+
+
+To activate the venv bin 
+
+.venv\Scripts\activate
+
+
+To intall the langgraph, the command is :
+pip install langgraph
