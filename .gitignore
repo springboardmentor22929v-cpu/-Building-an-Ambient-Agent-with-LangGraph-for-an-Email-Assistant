@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# Environment variables
+.env
+
+# OS
+.DS_Store
+
+tests
+
+results
+
+credentials.json
+token.pickle
+token.json
+
+test_inputs
+.langgraph_api
+.ipynb_checkpoints
+inbox_env
+
+agent_memory.db
