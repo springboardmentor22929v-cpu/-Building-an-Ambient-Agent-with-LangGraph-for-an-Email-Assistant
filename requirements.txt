@@ -1,4 +1,51 @@
+<<<<<<< HEAD
 langchain-google-genai
 langsmith
 python-dotenv
 pydantic
+=======
+# -----------------------------
+# LangChain + LangGraph (COMPATIBLE SET)
+# -----------------------------
+langchain==0.2.14
+langchain-core==0.2.32
+langchain-community==0.2.12
+langchain-google-genai==1.0.6
+langsmith>=0.1.17,<0.2.0
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite
+
+# -----------------------------
+# Google Gemini SDK (MATCHED)
+# -----------------------------
+google-generativeai>=0.5.2,<0.6.0
+protobuf>=4.25.3,<5.0.0
+
+# -----------------------------
+# Google APIs (Gmail / OAuth)
+# -----------------------------
+google-api-python-client==2.116.0
+google-auth==2.28.1
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+
+# -----------------------------
+# Web / HITL
+# -----------------------------
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+httpx==0.26.0
+email-validator==2.1.0
+
+# -----------------------------
+# Database
+# -----------------------------
+aiosqlite==0.19.0
+
+# -----------------------------
+# Utilities
+# -----------------------------
+python-dotenv==1.0.1
+pydantic==2.6.1
+pytz==2024.1
+>>>>>>> a7e5ca4 (Updated gitignore to exclude unnecessary files)
